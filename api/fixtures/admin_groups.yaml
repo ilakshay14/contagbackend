@@ -1,0 +1,4 @@
+- model: api.AdminGroup
+  pk: 1
+  fields:
+    group_name: Friends

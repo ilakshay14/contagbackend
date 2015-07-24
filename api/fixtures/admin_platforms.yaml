@@ -1,0 +1,23 @@
+- model: api.AdminPlatform
+  pk: 1
+  fields:
+    platform_name: Facebook
+    is_api_available: True
+    sync_type: Platform API
+    priority: 1
+
+- model: api.AdminPlatform
+  pk: 2
+  fields:
+    platform_name: Twitter
+    is_api_available: True
+    sync_type: Platform API
+    priority: 2
+
+- model: api.AdminPlatform
+  pk: 3
+  fields:
+    platform_name: Google+
+    is_api_available: True
+    sync_type: Platform API
+    priority: 3

@@ -37,7 +37,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api'
+    'api',
+    'rest_framework',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -76,13 +77,13 @@ WSGI_APPLICATION = 'contag.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-      'default': {
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'contag',
-        'HOST': '',
-        'PORT': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
         'USER': 'newsy_user',
-        'PASSWORD': 'Baphom3t5'  ,
+        'PASSWORD': 'Baphom3t5',
     }
 }
 

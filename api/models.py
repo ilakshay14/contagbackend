@@ -89,7 +89,7 @@ class UserInterest(TimeStampedModel):
 
 class UserPlatform(TimeStampedModel):
 
-    platform = models.ForeignKey(AdminPlatform)
+    admin_platform = models.ForeignKey(AdminPlatform)
     user = models.ForeignKey('User')
     platform_id = models.IntegerField(null=False)
     platform_token = models.CharField(max_length=200, null=True)
@@ -143,6 +143,8 @@ class PushNotification(models.Model):
     pass
 
 
-
+class OTPModel(TimeStampedModel):
+    number = models.CharField(max_length=100)
+    otp = models.CharField(max_length=6)
 
 

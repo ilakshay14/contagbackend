@@ -143,6 +143,7 @@ class Feed(TimeStampedModel):
     story_text = models.CharField(max_length=255)
     story_url = models.CharField(max_length=255)
     story_image = models.CharField(max_length=255)
+    story_type = models.CharField(max_length=55)
 
 
 class Notification(models.Model):

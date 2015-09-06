@@ -20,3 +20,5 @@ class JSONResponse(HttpResponse):
 VALIDATION_ERROR_MESSAGE = {"Message": "Validation error occurred!"}
 
 UNKOWN_ERROR_MESSAGE = {"Message": "Unknown error occured!"}
+
+OBJECT_DOES_NOT_EXIST = {"Message": "Object does not exist!"}

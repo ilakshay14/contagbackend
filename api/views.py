@@ -8,9 +8,10 @@ from rest_framework.views import APIView
 from django.utils import timezone
 from contag.APIPermissions import AuthToken
 
-from contag.response import JSONResponse, UNKOWN_ERROR_MESSAGE, VALIDATION_ERROR_MESSAGE
-from models import OTPModel, Contact
-from serializers import ContactSyncSerializer, ContactViewSerializer
+from contag.response import JSONResponse, UNKOWN_ERROR_MESSAGE, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST
+from models import OTPModel, Contact, Feed, User
+from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
+    ProfileViewSerializer
 
 
 class LoginView(APIView):
@@ -34,6 +35,29 @@ class OTPView(APIView):
             return JSONResponse({"success": "false"}, status=200)
 
 
+class UserView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def put(self, request):
+
+        profile = ProfileEditSerializer(instance=request.user, partial=True, data=request.data)
+
+        if profile.is_valid():
+            profile.save()
+            return JSONResponse(profile.data, status=200)
+
+    def get(self, request):
+
+        try:
+            user = User.objects.get(pk= request.query_params["user_id"])
+            profile = ProfileViewSerializer(instance=user)
+
+            return JSONResponse(profile.data, status=200)
+        except Exception as e:
+            return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
+
+
 class ContactView(APIView):
 
     permission_classes = (AuthToken, )
@@ -42,11 +66,9 @@ class ContactView(APIView):
 
         try:
             # Create/Update whatever contacts come from the app
-            print request.user.name
-            print '------------------------------------------'
             contacts = ContactSyncSerializer(many=True, context={'current_user': request.user})
             synced_contacts = contacts.create(validated_data=request.data)
-            print synced_contacts
+
             # Delete records which are not in synced ids
             synced_ids = [contact.id for contact in synced_contacts]
             Contact.objects.filter(user=request.user).exclude(id__in=synced_ids).delete()
@@ -66,6 +88,16 @@ class ContactView(APIView):
 
         return JSONResponse(response_data, status=200)
 
-    def put(self, request):
 
-        pass
+class FeedView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def get(self, request):
+
+        stories = Feed.objects.filter(from_user=request.user)
+
+        feeds = FeedSerializer(instance=stories, many=True).data
+
+        return JSONResponse(feeds, status=200)
+

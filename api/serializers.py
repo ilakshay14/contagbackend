@@ -1,8 +1,5 @@
 from rest_framework import serializers
-from models import User, Contact, UserInterest
-
-
-
+from models import User, Contact, UserInterest, Feed
 
 
 class ContactSyncSerializer(serializers.ModelSerializer):
@@ -56,6 +53,7 @@ class UserShortProfileSerializer(serializers.ModelSerializer):
     def get_user_interest(self, obj):
         return [interest.interest for interest in UserInterest.objects.filter(user=obj)]
 
+
 class ContactViewSerializer(serializers.ModelSerializer):
     contact_contag_user = UserShortProfileSerializer()
 
@@ -65,7 +63,23 @@ class ContactViewSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class FeedSerializer(serializers.ModelSerializer):
+    from_user = UserShortProfileSerializer()
+
+    class Meta:
+        model = Feed
+        depth = 1
 
 
+class ProfileEditSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        exclude = ('id', 'registered_with', 'is_mobile_verified')
 
 
+class ProfileViewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        exclude = ('id', 'registered_with', 'is_mobile_verified')

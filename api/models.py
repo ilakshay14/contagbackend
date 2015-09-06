@@ -111,13 +111,6 @@ class BlockedList(TimeStampedModel):
     blocked_user = models.ForeignKey(User, null=False, related_name="blocked_user")
 
 
-class OTPToken(TimeStampedModel):
-
-    user = models.ForeignKey(User, null=False)
-    contact_number = models.CharField(null=False, max_length=255)
-    token = models.CharField(null=False, max_length=55)
-
-
 class ProfileRequest(TimeStampedModel):
 
     for_user = models.ForeignKey(User, null=False)
@@ -143,7 +136,7 @@ class PushNotification(models.Model):
     pass
 
 
-class OTPModel(TimeStampedModel):
+class OTPToken(TimeStampedModel):
     number = models.CharField(max_length=100)
     otp = models.CharField(max_length=6)
 

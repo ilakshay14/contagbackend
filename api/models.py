@@ -1,3 +1,5 @@
+import binascii
+import os
 from django.db import models
 
 
@@ -53,6 +55,10 @@ class User(TimeStampedModel):
     marital_status = models.BooleanField(default=False)
     marriage_anniversary = models.DateField()
 
+
+    def get_access_token(self, request_headers):
+
+        return
 
 class AccessToken(TimeStampedModel):
 

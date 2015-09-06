@@ -6,14 +6,14 @@ class SMS():
     def send(self, mobile_number, sms_text):
         url_parameters = urllib.urlencode({
 
-            "pass": "password",
-            "sender": "contag",
+            "pass": "Revolution",
+            "sender": "Pitstop",
             "priority": "ndnd",
             "phone": mobile_number,
             "text": sms_text
         })
 
-        url = "http://bhashsms.com/api/sendmsg.php?user=sms@contag&"
+        url = "http://bhashsms.com/api/sendmsg.php?user=sms@Pitstop&"
 
         url += url_parameters
 

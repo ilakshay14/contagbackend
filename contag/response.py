@@ -22,3 +22,9 @@ VALIDATION_ERROR_MESSAGE = {"Message": "Validation error occurred!"}
 UNKOWN_ERROR_MESSAGE = {"Message": "Unknown error occured!"}
 
 OBJECT_DOES_NOT_EXIST = {"Message": "Object does not exist!"}
+
+REQUEST_ALREADY_EXISTS  = {"Message": "Request already exists!"}
+
+PROFILE_REQUEST_CREATED = {"Message": "Profile request created!"}
+
+SUCCESS_MESSAGE = {"Message": "Success!"}

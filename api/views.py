@@ -8,8 +8,9 @@ from rest_framework.views import APIView
 from django.utils import timezone
 from contag.APIPermissions import AuthToken
 
-from contag.response import JSONResponse, UNKOWN_ERROR_MESSAGE, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST
-from models import OTPModel, Contact, Feed, User
+from contag.response import JSONResponse, UNKOWN_ERROR_MESSAGE, \
+    VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE
+from models import OTPModel, Contact, Feed, User, ProfileRequest
 from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
     ProfileViewSerializer
 
@@ -56,6 +57,39 @@ class UserView(APIView):
             return JSONResponse(profile.data, status=200)
         except Exception as e:
             return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
+
+
+class ProfileRequestView(APIView):
+
+    def post(self, request):
+
+        from_user = request.user
+        for_user = request.data["for_user"]
+        request_type = request.data["request_type"]
+
+        profile_request = ProfileRequest.objects.filter(for_user=for_user, from_user=from_user, request_type=request_type)
+
+        if len(profile_request):
+            return JSONResponse(REQUEST_ALREADY_EXISTS, status=200)
+        else:
+            profile_request = ProfileRequest(for_user=for_user, from_user=from_user, request_type=request_type)
+            profile_request.save()
+            return JSONResponse(PROFILE_REQUEST_CREATED, status=200)
+
+
+    def put(self, request):
+
+        profile_request = ProfileRequest.objects.get(pk= request.data["profile_request_id"])
+
+        try:
+            profile_request.is_fulfilled = request.data["is_fulfilled"]
+        except Exception as e:
+            profile_request.is_denied = request.data["is_denied"]
+
+        profile_request.save()
+
+        return JSONResponse(SUCCESS_MESSAGE, status=200)
+
 
 
 class ContactView(APIView):

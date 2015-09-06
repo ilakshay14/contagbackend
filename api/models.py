@@ -135,6 +135,8 @@ class ProfileRequest(TimeStampedModel):
     for_user = models.ForeignKey(User, null=False)
     from_user = models.ForeignKey(User, null=False, related_name="request_through")
     request_type = models.CharField(null=False, max_length=255)
+    is_fulfilled = models.BooleanField(default=False)
+    is_denied = models.BooleanField(default=False)
 
 
 class Feed(TimeStampedModel):

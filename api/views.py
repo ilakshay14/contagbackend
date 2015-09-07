@@ -41,7 +41,7 @@ class OTPView(APIView):
                 return JSONResponse({"is_new_user": True, "success": True, "auth_token" : None, "user": None}, status=200)
 
         else:
-            return JSONResponse({"success": False}, status=200)
+            return JSONResponse({"is_new_user": False, "success": False, "auth_token" : None, "user": None}, status=200)
 
 
 class CreateUserView(APIView):

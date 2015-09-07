@@ -1,8 +1,9 @@
 import binascii
 import os
 from django.db import models
+from random import randint
 
-
+from utilities.sms import SMS
 class TimeStampedModel(models.Model):
     """ TimeStampedModel
     An abstract base class model that provides self-managed "created" and
@@ -164,3 +165,13 @@ class PushNotification(models.Model):
 class OTPToken(TimeStampedModel):
     number = models.CharField(max_length=100)
     otp = models.CharField(max_length=6)
+
+
+    def __init__(self):
+        self.otp = randint(100000, 999999)
+
+    def send(self):
+        otp_message = "Dear user you One Time Password(OTP) for login to Contag is " + str(self.otp) + "."
+        print(otp_message)
+        sms = SMS()
+        sms.send(self.number, self.otp)

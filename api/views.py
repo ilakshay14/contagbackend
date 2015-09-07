@@ -1,11 +1,10 @@
 import datetime
 import traceback
 
-
 from rest_framework.views import APIView
+from rest_framework.decorators import permission_classes
 
 from django.utils import timezone
-
 
 from models import OTPToken, Contact, Feed, User, ProfileRequest
 from contag.APIPermissions import AuthToken
@@ -18,7 +17,7 @@ from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerial
 class LoginView(APIView):
     def post(self, request):
         number = request.data['number']
-        otp = OTPToken(number=number)
+        otp = OTPToken.create(number=number)
         otp.save()
         otp.send()
         return JSONResponse({"success": "true"}, status=200)
@@ -35,15 +34,15 @@ class OTPView(APIView):
                 token = user.get_access_token(request.META)
                 user_serializer = ProfileViewSerializer(user)
                 return JSONResponse(
-                    {"is_new_user": False, "success": True, "auth_token": token.access_token, "user": user_serializer.data},
+                    {"is_new_user": False, "success": True, "auth_token": token.access_token,
+                     "user": user_serializer.data},
                     status=200)
             else:
                 return JSONResponse({"is_new_user": True, "success": True, "auth_token": None, "user": None},
                                     status=200)
 
         else:
-            return JSONResponse({"is_new_user": False, "success": False, "auth_token" : None, "user": None}, status=400)
-
+            return JSONResponse({"is_new_user": False, "success": False, "auth_token": None, "user": None}, status=400)
 
 
 class UserView(APIView):
@@ -52,10 +51,13 @@ class UserView(APIView):
     def put(self, request):
 
         profile = ProfileEditSerializer(instance=request.user, partial=True, data=request.data)
-
+        print(request.user.contag)
         if profile.is_valid():
+            print('is valid')
             profile.save()
-            return JSONResponse(profile.data, status=200)
+        else:
+            print(profile.errors)
+        return JSONResponse(profile.data, status=200)
 
     def get(self, request):
 
@@ -68,7 +70,14 @@ class UserView(APIView):
             return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
 
     def post(self, request):
-        return
+        users = User.objects.filter(mobile_number=request.data['number'], contag=request.data['contag_id'])
+        if len(users) != 0:
+            return JSONResponse({"success": False, "auth_token": None}, status=200)
+        else:
+            user = User(mobile_number=request.data['number'], contag=request.data['contag_id'])
+            user.save()
+            token = user.get_access_token(request.META)
+            return JSONResponse({"success": True, "auth_token": token.access_token}, status=200)
 
 
 class ProfileRequestView(APIView):
@@ -113,8 +122,8 @@ class ContactView(APIView):
             synced_contacts = contacts.create(validated_data=request.data)
 
             # Delete records which are not in synced ids
-            #synced_ids = [contact.id for contact in synced_contacts]
-            #Contact.objects.filter(user=request.user).exclude(id__in=synced_ids).delete()
+            # synced_ids = [contact.id for contact in synced_contacts]
+            # Contact.objects.filter(user=request.user).exclude(id__in=synced_ids).delete()
 
             response_data = ContactViewSerializer(instance=synced_contacts, many=True).data
 

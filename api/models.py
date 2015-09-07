@@ -2,8 +2,10 @@ import binascii
 import os
 from django.db import models
 from random import randint
-
+from django.utils import timezone
 from utilities.sms import SMS
+
+
 class TimeStampedModel(models.Model):
     """ TimeStampedModel
     An abstract base class model that provides self-managed "created" and
@@ -33,8 +35,7 @@ class User(TimeStampedModel):
     mobile_number = models.CharField(max_length=100, null=False)
     registered_with = models.CharField(max_length=255, null=False)
 
-
-    contag = models.CharField(null=False, max_length=8)
+    contag = models.CharField(null=False, max_length=8, unique=True)
     landline_number = models.CharField(max_length=100, null=True)
     emergency_contact_number = models.CharField(max_length=100, null=True)
     is_mobile_verified = models.BooleanField(default=False)
@@ -57,17 +58,19 @@ class User(TimeStampedModel):
     marriage_anniversary = models.DateField(null=True)
 
     def get_access_token(self, request_headers):
-        (device_id, device_type, push_id) = request_headers["HTTP_X_DEVICE_ID"], \
-                                            request_headers["HTTP_X_DEVICE_TYPE"], \
-                                            request_headers["HTTP_X_PUSH_ID"]
+        (device_id, device_type, push_id, app_version_id) = request_headers["HTTP_X_DEVICE_ID"], \
+                                                            request_headers["HTTP_X_DEVICE_TYPE"], \
+                                                            request_headers["HTTP_X_PUSH_ID"], \
+                                                            request_headers["HTTP_X_APP_VERSION_ID"]
         AccessToken.objects.filter(device_id=device_id, device_type=device_type).update(active=False)
-        token = AccessToken.objects.create(user=self, device_type=device_type, device_id=device_id, push_id=push_id)
+        token = AccessToken.objects.create(user=self, device_type=device_type, device_id=device_id, push_id=push_id,
+                                           last_login=timezone.now(), app_version_id=app_version_id)
         return token
 
 
 class AccessToken(TimeStampedModel):
     access_token = models.CharField(max_length=100, null=False)
-    device_id = models.CharField(max_length=50, null=False, unique=True)
+    device_id = models.CharField(max_length=50, null=False)
     user = models.ForeignKey(User)
     device_type = models.CharField(max_length=10, choices=(('android', 'Android Devices'),
                                                            ('ios', 'iOS Devices'), ('web', 'Browser')))
@@ -112,7 +115,6 @@ class Contact(TimeStampedModel):
 
 
 class UserInterest(TimeStampedModel):
-
     user = models.ForeignKey(User, related_name='user_interest')
     interest = models.CharField(max_length=255, null=False)
 
@@ -166,9 +168,11 @@ class OTPToken(TimeStampedModel):
     number = models.CharField(max_length=100)
     otp = models.CharField(max_length=6)
 
-
-    def __init__(self):
-        self.otp = randint(100000, 999999)
+    @classmethod
+    def create(cls, number):
+        otp_value = randint(100000, 999999)
+        otp = cls(number=number, otp=otp_value)
+        return otp
 
     def send(self):
         otp_message = "Dear user you One Time Password(OTP) for login to Contag is " + str(self.otp) + "."

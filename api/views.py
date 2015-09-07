@@ -2,8 +2,6 @@ import datetime
 import traceback
 
 from rest_framework.views import APIView
-from rest_framework.decorators import permission_classes
-
 from django.utils import timezone
 
 from models import OTPToken, Contact, Feed, User, ProfileRequest
@@ -30,7 +28,7 @@ class OTPView(APIView):
         if OTPToken.objects.filter(updated_on__gte=(timezone.now() - datetime.timedelta(hours=2)), number=number,
                                    otp=otp).exists():
             if User.objects.filter(mobile_number=number).exists():
-                user = User.objects.filter(mobile_number=number)
+                user = User.objects.filter(mobile_number=number)[0]
                 token = user.get_access_token(request.META)
                 user_serializer = ProfileViewSerializer(user)
                 return JSONResponse(
@@ -70,7 +68,7 @@ class UserView(APIView):
             return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
 
     def post(self, request):
-        users = User.objects.filter(mobile_number=request.data['number'], contag=request.data['contag_id'])
+        users = User.objects.filter(contag=request.data['contag_id'])
         if len(users) != 0:
             return JSONResponse({"success": False, "auth_token": None}, status=200)
         else:

@@ -9,13 +9,13 @@ from django.utils import timezone
 from utilities.sms import SMS
 from models import OTPToken, Contact, Feed, User, ProfileRequest
 from contag.APIPermissions import AuthToken
-from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE
+from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, \
+    PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE
 from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
     ProfileViewSerializer
 
 
 class LoginView(APIView):
-
     def post(self, request):
         number = request.data['number']
         otp_value = randint(100000, 999999)
@@ -30,7 +30,6 @@ class LoginView(APIView):
 
 
 class OTPView(APIView):
-
     def post(self, request):
         number = request.data['number']
         otp = request.data['otp']
@@ -45,20 +44,15 @@ class OTPView(APIView):
                     {"is_new_user": False, "success": True, "auth_token": access_token, "user": user_serializer},
                     status=200)
             else:
-                return JSONResponse({"is_new_user": True, "success": True, "auth_token" : None, "user": None}, status=200)
+                return JSONResponse({"is_new_user": True, "success": True, "auth_token": None, "user": None},
+                                    status=200)
 
         else:
-            return JSONResponse({"is_new_user": False, "success": False, "auth_token" : None, "user": None}, status=200)
-
-
-class CreateUserView(APIView):
-    def post(self, request):
-        return
+            return JSONResponse({"is_new_user": False, "success": False, "auth_token": None, "user": None}, status=200)
 
 
 class UserView(APIView):
-
-    permission_classes = (AuthToken, )
+    permission_classes = (AuthToken,)
 
     def put(self, request):
 
@@ -71,23 +65,26 @@ class UserView(APIView):
     def get(self, request):
 
         try:
-            user = User.objects.get(pk= request.query_params["user_id"])
+            user = User.objects.get(pk=request.query_params["user_id"])
             profile = ProfileViewSerializer(instance=user)
 
             return JSONResponse(profile.data, status=200)
         except Exception as e:
             return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
 
+    def post(self, request):
+        return
+
 
 class ProfileRequestView(APIView):
-
     def post(self, request):
 
         from_user = request.user
         for_user = request.data["for_user"]
         request_type = request.data["request_type"]
 
-        profile_request = ProfileRequest.objects.filter(for_user=for_user, from_user=from_user, request_type=request_type)
+        profile_request = ProfileRequest.objects.filter(for_user=for_user, from_user=from_user,
+                                                        request_type=request_type)
 
         if len(profile_request):
             return JSONResponse(REQUEST_ALREADY_EXISTS, status=200)
@@ -96,10 +93,9 @@ class ProfileRequestView(APIView):
             profile_request.save()
             return JSONResponse(PROFILE_REQUEST_CREATED, status=200)
 
-
     def put(self, request):
 
-        profile_request = ProfileRequest.objects.get(pk= request.data["profile_request_id"])
+        profile_request = ProfileRequest.objects.get(pk=request.data["profile_request_id"])
 
         try:
             profile_request.is_fulfilled = request.data["is_fulfilled"]
@@ -111,10 +107,8 @@ class ProfileRequestView(APIView):
         return JSONResponse(SUCCESS_MESSAGE, status=200)
 
 
-
 class ContactView(APIView):
-
-    permission_classes = (AuthToken, )
+    permission_classes = (AuthToken,)
 
     def post(self, request):
 
@@ -144,14 +138,11 @@ class ContactView(APIView):
 
 
 class FeedView(APIView):
-
-    permission_classes = (AuthToken, )
+    permission_classes = (AuthToken,)
 
     def get(self, request):
-
         stories = Feed.objects.filter(from_user=request.user)
 
         feeds = FeedSerializer(instance=stories, many=True).data
 
         return JSONResponse(feeds, status=200)
-

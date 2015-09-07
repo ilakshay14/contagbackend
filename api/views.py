@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 from django.utils import timezone
 from utilities.sms import SMS
 from contag.response import JSONResponse
-from models import OTPToken, User
+from models import OTPToken, User, AccessToken
+from serializers import SUser
 
 
 class LoginView(APIView):
@@ -29,18 +30,20 @@ class OTPView(APIView):
         if OTPToken.objects.filter(updated_on__gte=(timezone.now() - datetime.timedelta(hours=2)), number=number,
                                    otp=otp).exists():
             if User.objects.filter(mobile_number=number).exists():
-                # TODO: send serializer ask trolltartar
                 user = User.objects.filter(mobile_number=number)
-                print(user.name)
-                return JSONResponse({"is_new_user": "false", "success": "true"}, status=200)
+                access_token = user.get_access_token(request.META)
+                print(access_token.access_token)
+                user_serializer = SUser(user)
+                return JSONResponse(
+                    {"is_new_user": False, "success": True, "auth_token": access_token, "user": user_serializer},
+                    status=200)
             else:
-                return JSONResponse({"is_new_user": "true", "success": "true"}, status=200)
+                return JSONResponse({"is_new_user": True, "success": True, "auth_token" : None, "user": None}, status=200)
 
         else:
-            return JSONResponse({"success": "false"}, status=200)
+            return JSONResponse({"success": False}, status=200)
 
 
 class CreateUserView(APIView):
     def post(self, request):
-        
         return

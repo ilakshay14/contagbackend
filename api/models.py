@@ -18,7 +18,6 @@ class TimeStampedModel(models.Model):
 
 
 class AdminPlatform(models.Model):
-
     platform_name = models.CharField(null=False, max_length=255)
     is_api_available = models.BooleanField(default=False)
     sync_type = models.CharField(null=False, max_length=55,
@@ -29,7 +28,6 @@ class AdminPlatform(models.Model):
 
 
 class User(TimeStampedModel):
-
     name = models.CharField(null=False, max_length=255)
     contag = models.CharField(null=False, max_length=8)
     mobile_number = models.CharField(max_length=100, null=False)
@@ -55,13 +53,16 @@ class User(TimeStampedModel):
     marital_status = models.BooleanField(default=False)
     marriage_anniversary = models.DateField()
 
-
     def get_access_token(self, request_headers):
+        (device_id, device_type, push_id) = request_headers["HTTP_X_DEVICE_ID"], \
+                                            request_headers["HTTP_X_DEVICE_TYPE"], \
+                                            request_headers["HTTP_X_PUSH_ID"]
+        AccessToken.objects.filter(device_id=device_id, device_type=device_type).update(active=False)
+        token = AccessToken.objects.create(user=self, device_type=device_type, device_id=device_id, push_id=push_id)
+        return token
 
-        return
 
 class AccessToken(TimeStampedModel):
-
     access_token = models.CharField(max_length=100, null=False)
     device_id = models.CharField(max_length=50, null=False, unique=True)
     user = models.ForeignKey(User)
@@ -72,10 +73,19 @@ class AccessToken(TimeStampedModel):
     last_login = models.DateTimeField()
     app_version_id = models.IntegerField()
 
+    def save(self, *args, **kwargs):
+        if not self.access_token:
+            self.access_token = self.generate_token()
+        return super(AccessToken, self).save(*args, **kwargs)
+
+    def generate_token(self):
+        return binascii.hexlify(os.urandom(20)).decode()
+
+    def __str__(self):
+        return self.access_token
 
 
 class Contact(TimeStampedModel):
-
     user = models.ForeignKey(User)
     contact_name = models.CharField(null=False, max_length=255)
     contact_number = models.CharField(null=True, max_length=255)
@@ -88,13 +98,11 @@ class Contact(TimeStampedModel):
 
 
 class UserInterest(TimeStampedModel):
-
     user = models.ForeignKey(User)
     interest = models.CharField(max_length=255, null=False)
 
 
 class UserPlatform(TimeStampedModel):
-
     admin_platform = models.ForeignKey(AdminPlatform)
     user = models.ForeignKey('User')
     platform_id = models.IntegerField(null=False)
@@ -106,26 +114,22 @@ class UserPlatform(TimeStampedModel):
 
 
 class PlatformShare(TimeStampedModel):
-
-    platform= models.ForeignKey('UserPlatform')
+    platform = models.ForeignKey('UserPlatform')
     shared_for = models.ForeignKey('User')
 
 
 class BlockedList(TimeStampedModel):
-
     through_user = models.ForeignKey(User, null=False)
     blocked_user = models.ForeignKey(User, null=False, related_name="blocked_user")
 
 
 class ProfileRequest(TimeStampedModel):
-
     for_user = models.ForeignKey(User, null=False)
     from_user = models.ForeignKey(User, null=False, related_name="request_through")
     request_type = models.CharField(null=False, max_length=255)
 
 
 class Feed(TimeStampedModel):
-
     from_user = models.ForeignKey('User')
     story_text = models.CharField(max_length=255)
     story_url = models.CharField(max_length=255)
@@ -133,17 +137,13 @@ class Feed(TimeStampedModel):
 
 
 class Notification(models.Model):
-
     pass
 
 
 class PushNotification(models.Model):
-
     pass
 
 
 class OTPToken(TimeStampedModel):
     number = models.CharField(max_length=100)
     otp = models.CharField(max_length=6)
-
-

@@ -43,19 +43,18 @@ class UserInterestSerializer(serializers.ModelSerializer):
         #fields = ('interest', )
 
 
-class UserShortProfileSerializer(serializers.ModelSerializer):
+class ProfileViewSerializer(serializers.ModelSerializer):
     user_interest = serializers.SerializerMethodField(source='get_user_interest')
 
     class Meta:
         model = User
-        fields = ('id', 'name', 'mobile_number', 'contag', 'user_interest')
 
     def get_user_interest(self, obj):
         return [interest.interest for interest in UserInterest.objects.filter(user=obj)]
 
 
 class ContactViewSerializer(serializers.ModelSerializer):
-    contact_contag_user = UserShortProfileSerializer()
+    contact_contag_user = ProfileViewSerializer()
 
     class Meta:
         model = Contact
@@ -64,7 +63,7 @@ class ContactViewSerializer(serializers.ModelSerializer):
 
 
 class FeedSerializer(serializers.ModelSerializer):
-    from_user = UserShortProfileSerializer()
+    from_user = ProfileViewSerializer()
 
     class Meta:
         model = Feed
@@ -77,9 +76,3 @@ class ProfileEditSerializer(serializers.ModelSerializer):
         model = User
         exclude = ('id', 'registered_with', 'is_mobile_verified')
 
-
-class ProfileViewSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        exclude = ('id', 'registered_with', 'is_mobile_verified')

@@ -1,12 +1,12 @@
 import datetime
 import traceback
-from random import randint
+
 
 from rest_framework.views import APIView
 
 from django.utils import timezone
 
-from utilities.sms import SMS
+
 from models import OTPToken, Contact, Feed, User, ProfileRequest
 from contag.APIPermissions import AuthToken
 from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, \
@@ -18,14 +18,9 @@ from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerial
 class LoginView(APIView):
     def post(self, request):
         number = request.data['number']
-        otp_value = randint(100000, 999999)
-        otp = OTPToken(number=number, otp=otp_value)
-        print(otp_value)
+        otp = OTPToken(number=number)
         otp.save()
-        otp_message = "Dear user you One Time Password(OTP) for login to Contag is " + str(otp_value) + "."
-        print(otp_message)
-        sms = SMS()
-        sms.send(number, otp_message)
+        otp.send()
         return JSONResponse({"success": "true"}, status=200)
 
 
@@ -37,18 +32,18 @@ class OTPView(APIView):
                                    otp=otp).exists():
             if User.objects.filter(mobile_number=number).exists():
                 user = User.objects.filter(mobile_number=number)
-                access_token = user.get_access_token(request.META)
-                print(access_token.access_token)
+                token = user.get_access_token(request.META)
                 user_serializer = ProfileViewSerializer(user)
                 return JSONResponse(
-                    {"is_new_user": False, "success": True, "auth_token": access_token, "user": user_serializer},
+                    {"is_new_user": False, "success": True, "auth_token": token.access_token, "user": user_serializer.data},
                     status=200)
             else:
                 return JSONResponse({"is_new_user": True, "success": True, "auth_token": None, "user": None},
                                     status=200)
 
         else:
-            return JSONResponse({"is_new_user": False, "success": False, "auth_token": None, "user": None}, status=200)
+            return JSONResponse({"is_new_user": False, "success": False, "auth_token" : None, "user": None}, status=400)
+
 
 
 class UserView(APIView):
@@ -118,8 +113,8 @@ class ContactView(APIView):
             synced_contacts = contacts.create(validated_data=request.data)
 
             # Delete records which are not in synced ids
-            synced_ids = [contact.id for contact in synced_contacts]
-            Contact.objects.filter(user=request.user).exclude(id__in=synced_ids).delete()
+            #synced_ids = [contact.id for contact in synced_contacts]
+            #Contact.objects.filter(user=request.user).exclude(id__in=synced_ids).delete()
 
             response_data = ContactViewSerializer(instance=synced_contacts, many=True).data
 

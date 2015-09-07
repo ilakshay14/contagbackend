@@ -29,14 +29,16 @@ class AdminPlatform(models.Model):
 
 class User(TimeStampedModel):
     name = models.CharField(null=False, max_length=255)
-    contag = models.CharField(null=False, max_length=8)
     mobile_number = models.CharField(max_length=100, null=False)
+    registered_with = models.CharField(max_length=255, null=False)
+
+
+    contag = models.CharField(null=False, max_length=8)
     landline_number = models.CharField(max_length=100, null=True)
     emergency_contact_number = models.CharField(max_length=100, null=True)
     is_mobile_verified = models.BooleanField(default=False)
     gender = models.CharField(max_length=1, default='f')
     personal_email = models.CharField(max_length=255, null=True)
-    registered_with = models.CharField(max_length=255, null=False)
     address = models.CharField(max_length=500, null=True)
     work_email = models.CharField(max_length=255, null=True)
     work_mobile_number = models.CharField(max_length=100, null=True)
@@ -49,9 +51,9 @@ class User(TimeStampedModel):
     ios_app_link = models.CharField(max_length=100, null=True)
     avatar_url = models.CharField(max_length=500, null=True)
     blood_group = models.CharField(max_length=55, null=True)
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(null=True)
     marital_status = models.BooleanField(default=False)
-    marriage_anniversary = models.DateField()
+    marriage_anniversary = models.DateField(null=True)
 
     def get_access_token(self, request_headers):
         (device_id, device_type, push_id) = request_headers["HTTP_X_DEVICE_ID"], \
@@ -91,14 +93,26 @@ class Contact(TimeStampedModel):
     contact_number = models.CharField(null=True, max_length=255)
     is_on_contag = models.BooleanField(default=False)
     is_invited = models.BooleanField(default=False)
-    invited_on = models.DateTimeField()
+    invited_on = models.DateTimeField(null=True)
     contact_contag_user = models.ForeignKey(User, null=True, related_name="Contag_Contact")
     is_muted = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)
 
+    def save(self, *args, **kwargs):
+        self.is_contag_user()
+        super(Contact, self).save(*args, **kwargs)
+
+    def is_contag_user(self):
+        if not self.is_on_contag:
+            contag_user = User.objects.filter(mobile_number=self.contact_number)
+            if len(contag_user):
+                self.is_on_contag = True
+                self.contact_contag_user = contag_user[0]
+
 
 class UserInterest(TimeStampedModel):
-    user = models.ForeignKey(User)
+
+    user = models.ForeignKey(User, related_name='user_interest')
     interest = models.CharField(max_length=255, null=False)
 
 
@@ -127,6 +141,8 @@ class ProfileRequest(TimeStampedModel):
     for_user = models.ForeignKey(User, null=False)
     from_user = models.ForeignKey(User, null=False, related_name="request_through")
     request_type = models.CharField(null=False, max_length=255)
+    is_fulfilled = models.BooleanField(default=False)
+    is_denied = models.BooleanField(default=False)
 
 
 class Feed(TimeStampedModel):
@@ -134,6 +150,7 @@ class Feed(TimeStampedModel):
     story_text = models.CharField(max_length=255)
     story_url = models.CharField(max_length=255)
     story_image = models.CharField(max_length=255)
+    story_type = models.CharField(max_length=55)
 
 
 class Notification(models.Model):

@@ -2,18 +2,14 @@ import datetime
 import traceback
 from random import randint
 
-
-
 from rest_framework.views import APIView
-from django.utils import timezone
-from utilities.sms import SMS
-from contag.response import JSONResponse
-from models import OTPToken, Contact, Feed, User, ProfileRequest, AccessToken
-from serializers import SUser
-from contag.APIPermissions import AuthToken
 
-from contag.response import JSONResponse, UNKOWN_ERROR_MESSAGE, \
-    VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE
+from django.utils import timezone
+
+from utilities.sms import SMS
+from models import OTPToken, Contact, Feed, User, ProfileRequest
+from contag.APIPermissions import AuthToken
+from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE
 from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
     ProfileViewSerializer
 
@@ -44,7 +40,7 @@ class OTPView(APIView):
                 user = User.objects.filter(mobile_number=number)
                 access_token = user.get_access_token(request.META)
                 print(access_token.access_token)
-                user_serializer = SUser(user)
+                user_serializer = ProfileViewSerializer(user)
                 return JSONResponse(
                     {"is_new_user": False, "success": True, "auth_token": access_token, "user": user_serializer},
                     status=200)

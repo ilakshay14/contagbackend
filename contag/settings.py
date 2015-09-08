@@ -81,9 +81,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'contag',
-        'HOST': '127.0.0.1',
+        'HOST': 'tanaytandon12.mysql.pythonanywhere-services.com',
         'PORT': '3306',
-        'USER': 'newsy_user',
+        'USER': 'tanaytandon12',
         'PASSWORD': 'Baphom3t5',
     }
 }

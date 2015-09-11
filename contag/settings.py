@@ -80,11 +80,11 @@ WSGI_APPLICATION = 'contag.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tanaytandon12$contag',
-        'HOST': 'tanaytandon12.mysql.pythonanywhere-services.com',
+        'NAME': 'contag',
+        'HOST': 'contagdbinstance.ccciwwjzjumq.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
-        'USER': 'tanaytandon12',
-        'PASSWORD': 'Baphom3t5',
+        'USER': 'contag',
+        'PASSWORD': 'Contag101',
     }
 }
 

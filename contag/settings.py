@@ -82,6 +82,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'contag',
         'HOST': 'contag.c1mliw98jdpx.ap-southeast-1.rds.amazonaws.com',
+        # 'HOST' : '127.0.0.1',
         'PORT': '3306',
         'USER': 'contag',
         'PASSWORD': 'Contag101',

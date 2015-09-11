@@ -13,7 +13,7 @@ class SMS():
             "text": sms_text
         })
 
-        url = "http://bhashsms.com/api/sendmsg.php?user=sms@pitstop&"
+        url = "http://bhashsms.com/api/sendmsg.php?user=pitstop&"
 
         url += url_parameters
 

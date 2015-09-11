@@ -7,13 +7,13 @@ class SMS():
         url_parameters = urllib.urlencode({
 
             "pass": "Revolution",
-            "sender": "Pitstop",
+            "sender": "Contag",
             "priority": "ndnd",
             "phone": mobile_number,
             "text": sms_text
         })
 
-        url = "http://bhashsms.com/api/sendmsg.php?user=sms@Pitstop&"
+        url = "http://bhashsms.com/api/sendmsg.php?user=sms@pitstop&"
 
         url += url_parameters
 

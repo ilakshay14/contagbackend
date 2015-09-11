@@ -178,4 +178,5 @@ class OTPToken(TimeStampedModel):
         otp_message = "Dear user you One Time Password(OTP) for login to Contag is " + str(self.otp) + "."
         print(otp_message)
         sms = SMS()
-        sms.send(self.number, otp_message)
+        if self.number == 9971528807:
+            sms.send(self.number, otp_message)

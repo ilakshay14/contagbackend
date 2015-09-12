@@ -20,7 +20,7 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
-class AdminPlatform(models.Model):
+class SocialPlatform(models.Model):
     platform_name = models.CharField(null=False, max_length=255)
     is_api_available = models.BooleanField(default=False)
     sync_type = models.CharField(null=False, max_length=55,
@@ -34,14 +34,23 @@ class User(TimeStampedModel):
     name = models.CharField(null=False, max_length=255)
     mobile_number = models.CharField(max_length=100, null=False)
     registered_with = models.CharField(max_length=255, null=False)
+    is_mobile_verified = models.BooleanField(default=False)
 
+    #Always public short profile
     contag = models.CharField(null=False, max_length=8, unique=True)
+    gender = models.CharField(max_length=1, default='f')
+    interests = models.CharField(max_length=1055, null=True)
+
+    # Personal profile
     landline_number = models.CharField(max_length=100, null=True)
     emergency_contact_number = models.CharField(max_length=100, null=True)
-    is_mobile_verified = models.BooleanField(default=False)
-    gender = models.CharField(max_length=1, default='f')
     personal_email = models.CharField(max_length=255, null=True)
     address = models.CharField(max_length=500, null=True)
+    date_of_birth = models.DateField(null=True)
+    marital_status = models.BooleanField(default=False)
+    marriage_anniversary = models.DateField(null=True)
+
+    #Professional profile
     work_email = models.CharField(max_length=255, null=True)
     work_mobile_number = models.CharField(max_length=100, null=True)
     work_landline_number = models.CharField(max_length=100, null=True)
@@ -53,9 +62,6 @@ class User(TimeStampedModel):
     ios_app_link = models.CharField(max_length=100, null=True)
     avatar_url = models.CharField(max_length=500, null=True)
     blood_group = models.CharField(max_length=55, null=True)
-    date_of_birth = models.DateField(null=True)
-    marital_status = models.BooleanField(default=False)
-    marriage_anniversary = models.DateField(null=True)
 
     def get_access_token(self, request_headers):
         (device_id, device_type, push_id, app_version_id) = request_headers["HTTP_X_DEVICE_ID"], \
@@ -91,6 +97,25 @@ class AccessToken(TimeStampedModel):
         return self.access_token
 
 
+class OTPToken(TimeStampedModel):
+    number = models.CharField(max_length=100)
+    otp = models.CharField(max_length=6)
+
+    @classmethod
+    def create(cls, number):
+        otp_value = randint(100000, 999999)
+        otp = cls(number=number, otp=otp_value)
+        return otp
+
+    def send(self):
+        otp_message = "Dear user you One Time Password(OTP) for login to Contag is " + str(self.otp) + "."
+        print(otp_message)
+        sms = SMS()
+        # if self.number == 9971528807:
+        #     sms.send(self.number, otp_message)
+        sms.send(self.number, otp_message)
+
+
 class Contact(TimeStampedModel):
     user = models.ForeignKey(User)
     contact_name = models.CharField(null=False, max_length=255)
@@ -114,25 +139,22 @@ class Contact(TimeStampedModel):
                 self.contact_contag_user = contag_user[0]
 
 
-class UserInterest(TimeStampedModel):
-    user = models.ForeignKey(User, related_name='user_interest')
-    interest = models.CharField(max_length=255, null=False)
-
-
-class UserPlatform(TimeStampedModel):
-    admin_platform = models.ForeignKey(AdminPlatform)
-    user = models.ForeignKey('User')
+class SociaProfile(TimeStampedModel):
+    social_platform = models.ForeignKey(SocialPlatform)
+    user = models.ForeignKey(User)
     platform_id = models.IntegerField(null=False)
     platform_token = models.CharField(max_length=200, null=True)
     platform_secret = models.CharField(max_length=200, null=True)
     platform_permissions = models.CharField(max_length=255, null=True)
     platform_email = models.CharField(max_length=255, null=True)
-    is_public = models.BooleanField(default=True)
 
 
-class PlatformShare(TimeStampedModel):
-    platform = models.ForeignKey('UserPlatform')
-    shared_for = models.ForeignKey('User')
+class ProfileRight(models.Model):
+
+    from_user = models.ForeignKey(User)
+    to_user = models.ForeignKey(User, related_name='to_user')
+    unit_type = models.CharField(max_length=255)
+    unit_id = models.IntegerField(default=0)
 
 
 class BlockedList(TimeStampedModel):
@@ -164,20 +186,3 @@ class PushNotification(models.Model):
     pass
 
 
-class OTPToken(TimeStampedModel):
-    number = models.CharField(max_length=100)
-    otp = models.CharField(max_length=6)
-
-    @classmethod
-    def create(cls, number):
-        otp_value = randint(100000, 999999)
-        otp = cls(number=number, otp=otp_value)
-        return otp
-
-    def send(self):
-        otp_message = "Dear user you One Time Password(OTP) for login to Contag is " + str(self.otp) + "."
-        print(otp_message)
-        sms = SMS()
-        # if self.number == 9971528807:
-        #     sms.send(self.number, otp_message)
-        sms.send(self.number, otp_message)

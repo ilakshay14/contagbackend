@@ -13,15 +13,17 @@ from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerial
 
 
 class LoginView(APIView):
+
     def post(self, request):
         number = request.data['number']
         otp = OTPToken.create(number=number)
         otp.save()
         otp.send()
-        return JSONResponse({"success": "true"}, status=200)
+        return JSONResponse(SUCCESS_MESSAGE, status=200)
 
 
 class OTPView(APIView):
+
     def post(self, request):
         number = request.data['number']
         otp = request.data['otp']
@@ -32,18 +34,36 @@ class OTPView(APIView):
                 token = user.get_access_token(request.META)
                 user_serializer = ProfileViewSerializer(user)
                 return JSONResponse(
-                    {"is_new_user": False, "success": True, "auth_token": token.access_token,
-                     "user": user_serializer.data},
+                    {
+                        "is_new_user": False,
+                        "success":     True,
+                        "auth_token":  token.access_token,
+                        "user":        user_serializer.data
+                    },
                     status=200)
             else:
-                return JSONResponse({"is_new_user": True, "success": True, "auth_token": None, "user": None},
-                                    status=200)
+                return JSONResponse(
+                    {
+                        "is_new_user": True,
+                        "success": True,
+                        "auth_token": None,
+                        "user": None
+                    },
+                    status=200)
 
         else:
-            return JSONResponse({"is_new_user": False, "success": False, "auth_token": None, "user": None}, status=400)
+            return JSONResponse(
+                {
+                    "is_new_user": False,
+                    "success": False,
+                    "auth_token": None,
+                    "user": None
+                },
+                status=400)
 
 
 class UserView(APIView):
+
     permission_classes = (AuthToken,)
 
     def put(self, request):

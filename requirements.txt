@@ -1,0 +1,12 @@
+Django==1.8.4
+django-extensions==1.5.6
+djangorestframework==3.2.3
+enum34==1.0.4
+idna==2.0
+ipaddress==1.0.14
+MySQL-python==1.2.5
+pyasn1==0.1.8
+pycparser==2.14
+six==1.9.0
+wheel==0.24.0
+

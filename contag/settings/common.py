@@ -77,17 +77,7 @@ WSGI_APPLICATION = 'contag.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'contag',
-        # 'HOST': 'contag.c1mliw98jdpx.ap-southeast-1.rds.amazonaws.com',
-        'HOST' : '127.0.0.1',
-        'PORT': '3306',
-        'USER': 'contag',
-        'PASSWORD': 'Contag101',
-    }
-}
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -116,3 +106,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+try:
+    from contag.settings.local import *
+except ImportError as e:
+    from contag.settings.prod import *

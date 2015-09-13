@@ -7,7 +7,7 @@ from django.utils import timezone
 from models import OTPToken, Contact, Feed, User, ProfileRequest
 from contag.APIPermissions import AuthToken
 from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, \
-    PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE
+    PROFILE_REQUEST_CREATED, SUCCESS_STATUS
 from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
     ProfileViewSerializer, SocialProfileEditSerializer
 
@@ -19,7 +19,7 @@ class LoginView(APIView):
         otp = OTPToken.create(number=number)
         otp.save()
         otp.send()
-        return JSONResponse(SUCCESS_MESSAGE, status=200)
+        return JSONResponse(SUCCESS_STATUS, status=200)
 
 
 class OTPView(APIView):

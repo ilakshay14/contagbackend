@@ -75,9 +75,9 @@ class UserView(APIView):
         try:
             user = User.objects.get(pk=request.query_params["user_id"]) if "user_id" in request.query_params else request.user
             profile = ProfileViewSerializer(instance=user)
-            # TODO visibility object
             return JSONResponse(profile.data, status=200)
         except Exception as e:
+            print traceback.format_exc(e)
             return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
 
     def post(self, request):

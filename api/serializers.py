@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import User, Contact, Feed, SocialProfile
+from models import User, Contact, Feed, SocialProfile, ProfileRight
 
 
 class ContactSyncSerializer(serializers.ModelSerializer):
@@ -36,10 +36,25 @@ class ContactSyncSerializer(serializers.ModelSerializer):
         pass
 
 
+class SocialProfileEditSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SocialProfile
+
+
+class ProfileRightSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProfileRight
+
+
 class ProfileViewSerializer(serializers.ModelSerializer):
+    # profile_rights = ProfileRightSerializer()
+    # social_profile = SocialProfileEditSerializer()
 
     class Meta:
         model = User
+        #include = ('profile_rights', 'social_profile')
 
 
 class ContactViewSerializer(serializers.ModelSerializer):
@@ -65,8 +80,3 @@ class ProfileEditSerializer(serializers.ModelSerializer):
         model = User
         exclude = ('id', 'registered_with', 'is_mobile_verified')
 
-
-class SocialProfileEditSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = SocialProfile

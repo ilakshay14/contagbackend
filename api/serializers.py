@@ -36,21 +36,10 @@ class ContactSyncSerializer(serializers.ModelSerializer):
         pass
 
 
-class UserInterestSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = UserInterest
-        #fields = ('interest', )
-
-
 class ProfileViewSerializer(serializers.ModelSerializer):
-    user_interest = serializers.SerializerMethodField(source='get_user_interest')
 
     class Meta:
         model = User
-
-    def get_user_interest(self, obj):
-        return [interest.interest for interest in UserInterest.objects.filter(user=obj)]
 
 
 class ContactViewSerializer(serializers.ModelSerializer):
@@ -75,8 +64,6 @@ class ProfileEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('id', 'registered_with', 'is_mobile_verified')
-
-
 
 
 class SocialProfileEditSerializer(serializers.ModelSerializer):

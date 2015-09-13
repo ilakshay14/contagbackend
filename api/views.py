@@ -138,7 +138,7 @@ class ProfileRequestView(APIView):
 
         profile_request.save()
 
-        return JSONResponse(SUCCESS_MESSAGE, status=200)
+        return JSONResponse(SUCCESS_STATUS, status=200)
 
 
 class ContactView(APIView):

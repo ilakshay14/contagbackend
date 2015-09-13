@@ -73,6 +73,22 @@ class User(TimeStampedModel):
                                            last_login=timezone.now(), app_version_id=app_version_id)
         return token
 
+    def set_visibility(self, data):
+        visibility = data.pop("visibility", -1)
+
+        # For objects in profile get column name from json key and
+        # save profile right visibility
+        for key, value in data["profile"].items():
+            column = key
+
+            right = ProfileRight.objects.filter(user=self, unit_type=column)
+
+            if not len(right):
+                # If info is being added for the first time it is either public or privategi
+                right = ProfileRight(user=self, unit_type=column, unit_id=self.id,
+                                     is_public= True if visibility == 0 else False)
+                right.save()
+
 
 class AccessToken(TimeStampedModel):
     access_token = models.CharField(max_length=100, null=False)
@@ -139,7 +155,7 @@ class Contact(TimeStampedModel):
                 self.contact_contag_user = contag_user[0]
 
 
-class SociaProfile(TimeStampedModel):
+class SocialProfile(TimeStampedModel):
     social_platform = models.ForeignKey(SocialPlatform)
     user = models.ForeignKey(User)
     platform_id = models.IntegerField(null=False)
@@ -148,13 +164,31 @@ class SociaProfile(TimeStampedModel):
     platform_permissions = models.CharField(max_length=255, null=True)
     platform_email = models.CharField(max_length=255, null=True)
 
+    def set_visibility(self, data):
+        visibility = data.pop("visibility", -1)
+
+        # For objects in profile get column name from json key and
+        # save profile right visibility
+        platform = self.social_platform.platform_name
+
+        right = ProfileRight.objects.filter(user=self, unit_type=platform)
+
+        if not len(right):
+            # If info is being added for the first time it is either public or privategi
+            right = ProfileRight(user=self, unit_type=platform, unit_id=self.id,
+                                 is_public= True if visibility == 0 else False)
+            right.save()
+
+
 
 class ProfileRight(models.Model):
 
     from_user = models.ForeignKey(User)
-    to_user = models.ForeignKey(User, related_name='to_user')
+    #to_user = models.ForeignKey(User, related_name='to_user')
     unit_type = models.CharField(max_length=255)
     unit_id = models.IntegerField(default=0)
+    is_public = models.BooleanField(default=False)
+    visible_for = models.CharField(max_length=1055, null=True)
 
 
 class BlockedList(TimeStampedModel):

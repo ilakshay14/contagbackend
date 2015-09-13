@@ -9,7 +9,7 @@ from contag.APIPermissions import AuthToken
 from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, \
     PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE
 from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
-    ProfileViewSerializer
+    ProfileViewSerializer, SocialProfileEditSerializer
 
 
 class LoginView(APIView):
@@ -27,39 +27,32 @@ class OTPView(APIView):
     def post(self, request):
         number = request.data['number']
         otp = request.data['otp']
+        status = 200
         if OTPToken.objects.filter(updated_on__gte=(timezone.now() - datetime.timedelta(hours=2)), number=number,
                                    otp=otp).exists():
             if User.objects.filter(mobile_number=number).exists():
                 user = User.objects.filter(mobile_number=number)[0]
                 token = user.get_access_token(request.META)
-                user_serializer = ProfileViewSerializer(user)
-                return JSONResponse(
-                    {
+                result = {
                         "is_new_user": False,
                         "success":     True,
-                        "auth_token":  token.access_token,
-                        "user":        user_serializer.data
-                    },
-                    status=200)
+                        "auth_token":  token.access_token
+                        }
             else:
-                return JSONResponse(
-                    {
+                result = {
                         "is_new_user": True,
                         "success": True,
-                        "auth_token": None,
-                        "user": None
-                    },
-                    status=200)
-
+                        "auth_token": None
+                         }
         else:
-            return JSONResponse(
-                {
+            result = {
                     "is_new_user": False,
                     "success": False,
-                    "auth_token": None,
-                    "user": None
-                },
-                status=400)
+                    "auth_token": None
+                    }
+            status = 400
+
+        return JSONResponse(result, status=status)
 
 
 class UserView(APIView):
@@ -68,34 +61,53 @@ class UserView(APIView):
 
     def put(self, request):
 
-        profile = ProfileEditSerializer(instance=request.user, partial=True, data=request.data)
-        print(request.user.contag)
+        profile = ProfileEditSerializer(instance=request.user, partial=True, data=request.data["profile"])
+
         if profile.is_valid():
-            print('is valid')
-            profile.save()
+            user_profile = profile.save()
+            user_profile.set_visibility(request.data)
+            return JSONResponse(profile.data, status=200)
         else:
-            print(profile.errors)
-        return JSONResponse(profile.data, status=200)
+            return JSONResponse(profile.errors, status=403)
 
     def get(self, request):
 
         try:
-            user = User.objects.get(pk=request.query_params["user_id"])
+            user = User.objects.get(pk=request.query_params["user_id"]) if "user_id" in request.query_params else request.user
             profile = ProfileViewSerializer(instance=user)
-
+            # TODO visibility object
             return JSONResponse(profile.data, status=200)
         except Exception as e:
             return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
 
     def post(self, request):
+
         users = User.objects.filter(contag=request.data['contag_id'])
-        if len(users) != 0:
+        # Check if an existing user exists with the given contag id
+        if len(users):
             return JSONResponse({"success": False, "auth_token": None}, status=200)
         else:
             user = User(mobile_number=request.data['number'], contag=request.data['contag_id'])
             user.save()
             token = user.get_access_token(request.META)
             return JSONResponse({"success": True, "auth_token": token.access_token}, status=200)
+
+
+class SocialProfileView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def put(self, request):
+
+        social_profile = SocialProfileEditSerializer(partial=True, data=request.data["social_profile"],
+                                                     context={'current_user': request.user})
+
+        if social_profile.is_valid():
+            social_profile.save()
+            social_profile.set_visibility(request.data)
+            return JSONResponse(social_profile.save(), status=200)
+        else:
+            return JSONResponse(social_profile.error_messages, status=403)
 
 
 class ProfileRequestView(APIView):

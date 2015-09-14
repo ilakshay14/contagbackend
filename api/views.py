@@ -50,8 +50,7 @@ class OTPView(APIView):
                     "success": False,
                     "auth_token": None
                     }
-            status = 400
-
+            
         return JSONResponse(result, status=status)
 
 

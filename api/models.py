@@ -73,22 +73,6 @@ class User(TimeStampedModel):
                                            last_login=timezone.now(), app_version_id=app_version_id)
         return token
 
-    def set_visibility(self, data):
-        visibility = data.pop("visibility", -1)
-
-        # For objects in profile get column name from json key and
-        # save profile right visibility
-        for key, value in data["profile"].items():
-            column = key
-
-            right = ProfileRight.objects.filter(from_user=self, unit_type=column)
-
-            if not len(right):
-                # If info is being added for the first time it is either public or privategi
-                right = ProfileRight(from_user=self, unit_type=column, unit_id=self.id,
-                                     is_public= True if visibility == 0 else False)
-                right.save()
-
 
 class AccessToken(TimeStampedModel):
     access_token = models.CharField(max_length=100, null=False)
@@ -163,21 +147,6 @@ class SocialProfile(TimeStampedModel):
     platform_secret = models.CharField(max_length=200, null=True)
     platform_permissions = models.CharField(max_length=255, null=True)
     platform_email = models.CharField(max_length=255, null=True)
-
-    def set_visibility(self, data):
-        visibility = data.pop("visibility", -1)
-
-        # For objects in profile get column name from json key and
-        # save profile right visibility
-        platform = self.social_platform.platform_name
-
-        right = ProfileRight.objects.filter(from_user=self, unit_type=platform)
-
-        if not len(right):
-            # If info is being added for the first time it is either public or privategi
-            right = ProfileRight(from_user=self, unit_type=platform, unit_id=self.id,
-                                 is_public= True if visibility == 0 else False)
-            right.save()
 
 
 class ProfileRight(models.Model):

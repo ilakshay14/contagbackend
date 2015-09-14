@@ -60,7 +60,7 @@ class ProfileViewSerializer(serializers.ModelSerializer):
     social_profile = SocialProfileSerializer(many=True)
 
     class Meta:
-        model = User #'social_profile'
+        model = User
         include = ('social_profile', 'profile_rights' )
 
 
@@ -86,4 +86,38 @@ class ProfileEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = ('id', 'registered_with', 'is_mobile_verified')
+
+    def update(self, instance, validated_data):
+
+        for field in validated_data:
+
+            for key, value in field.iteritems():
+                if not key == 'visibility':
+                    setattr(instance, key, value)
+                    column_name = key
+                else:
+                    right = ProfileRight.objects.filter(from_user=instance, unit_type=column_name)
+                    is_public = True if value == 0 else False
+
+                    if not len(right):
+                        ProfileRight.objects.create(from_user=instance, unit_type=column_name,
+                                         unit_id=instance.id, is_public= is_public)
+                    else:
+                        right = right[0]
+                        right.is_public = is_public
+                        right.save()
+
+
+
+        instance.save()
+
+        return instance
+
+
+
+
+
+
+
+
 

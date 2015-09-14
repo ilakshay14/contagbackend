@@ -61,14 +61,14 @@ class UserView(APIView):
 
     def put(self, request):
 
-        profile = ProfileEditSerializer(instance=request.user, partial=True, data=request.data["profile"])
+        profile = ProfileEditSerializer()
+        profile = profile.update(instance=request.user, validated_data=request.data)
 
-        if profile.is_valid():
-            user_profile = profile.save()
-            user_profile.set_visibility(request.data)
-            return JSONResponse(profile.data, status=200)
-        else:
-            return JSONResponse(profile.errors, status=403)
+        profile = ProfileViewSerializer(instance=profile)
+
+        return JSONResponse(profile.data, status=200)
+
+        #return JSONResponse(profile.errors, status=403)
 
     def get(self, request):
 
@@ -78,7 +78,7 @@ class UserView(APIView):
             return JSONResponse(profile.data, status=200)
         except Exception as e:
             print traceback.format_exc(e)
-            return JSONResponse(OBJECT_DOES_NOT_EXIST, status=400)
+            return JSONResponse(OBJECT_DOES_NOT_EXIST, status=200)
 
     def post(self, request):
 
@@ -104,10 +104,9 @@ class SocialProfileView(APIView):
 
         if social_profile.is_valid():
             social_profile.save()
-            social_profile.set_visibility(request.data)
-            return JSONResponse(social_profile.save(), status=200)
+            return JSONResponse(social_profile.data, status=200)
         else:
-            return JSONResponse(social_profile.error_messages, status=403)
+            return JSONResponse(social_profile.error_messages, status=200)
 
 
 class ProfileRequestView(APIView):
@@ -163,7 +162,7 @@ class ContactView(APIView):
             return JSONResponse(response_data, status=200)
         except Exception as e:
             print traceback.format_exc(e)
-            return JSONResponse(VALIDATION_ERROR_MESSAGE, status=400)
+            return JSONResponse(VALIDATION_ERROR_MESSAGE, status=200)
 
     def get(self, request):
 
@@ -183,3 +182,8 @@ class FeedView(APIView):
         feeds = FeedSerializer(instance=stories, many=True).data
 
         return JSONResponse(feeds, status=200)
+
+
+# Profile Right mess
+# Feed/notification generation and contact update
+# End points: Block/Mute, Feed, Notification, logout, Change contact number

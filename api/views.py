@@ -111,6 +111,9 @@ class SocialProfileView(APIView):
 
 
 class ProfileRequestView(APIView):
+
+    permission_classes = (AuthToken, )
+
     def post(self, request):
 
         from_user = request.user

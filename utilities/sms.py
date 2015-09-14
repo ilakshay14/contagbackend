@@ -3,6 +3,7 @@ import urllib
 
 
 class SMS():
+
     def send(self, mobile_number, sms_text):
         url_parameters = urllib.urlencode({
 

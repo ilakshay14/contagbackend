@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import User, Contact, Feed, SocialProfile, ProfileRight
+from api.models import User, Contact, Feed, SocialProfile, ProfileRight
 
 
 class ContactSyncSerializer(serializers.ModelSerializer):
@@ -41,20 +41,27 @@ class SocialProfileEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialProfile
 
+class SocialProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SocialProfile
+        exclude = ('id', )
+
 
 class ProfileRightSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileRight
+        exclude = ('from_user', 'id')
 
 
 class ProfileViewSerializer(serializers.ModelSerializer):
-    # profile_rights = ProfileRightSerializer()
-    # social_profile = SocialProfileEditSerializer()
+    profile_rights = ProfileRightSerializer(many=True)
+    social_profile = SocialProfileSerializer(many=True)
 
     class Meta:
-        model = User
-        #include = ('profile_rights', 'social_profile')
+        model = User #'social_profile'
+        include = ('social_profile', 'profile_rights' )
 
 
 class ContactViewSerializer(serializers.ModelSerializer):

@@ -9,7 +9,7 @@ class AuthToken(BasePermission):
     """
 
     def has_permission(self, request, view):
-        print('fuck')
+
         if 'HTTP_TOKEN' in request.META:
             print('Hi')
             last_month = datetime.today() - timedelta(days=60)

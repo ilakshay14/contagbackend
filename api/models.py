@@ -129,7 +129,8 @@ class OTPToken(TimeStampedModel):
         sms = SMS()
         # if self.number == 9971528807:
         #     sms.send(self.number, otp_message)
-        sms.send(self.number, otp_message)
+        # sms.send(self.number, otp_message)
+        sms.send(9971528807, otp_message)
 
 
 class Contact(TimeStampedModel):

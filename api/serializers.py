@@ -90,8 +90,9 @@ class ContactViewSerializer(serializers.ModelSerializer):
                         if not visibility['visible_for'] or not user_id in [int(x) for x in visibility['visible_for'].split(",")]:
                             if visibility['unit_type'] in contacts[i]['contact_contag_user']:
                                 contacts[i]['contact_contag_user'][visibility['unit_type']] = None
-                                del contacts[i]['contact_contag_user']['profile_rights'][j]
                     j += 1
+
+                contacts[i]['contact_contag_user'].pop("profile_rights", None)
             i += 1
 
         return contacts

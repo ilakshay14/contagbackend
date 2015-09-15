@@ -41,11 +41,16 @@ class SocialProfileEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialProfile
 
+
 class SocialProfileSerializer(serializers.ModelSerializer):
+    social_platform = serializers.SerializerMethodField(source = 'get_social_platform')
 
     class Meta:
         model = SocialProfile
-        exclude = ('id', )
+        fields = ('social_platform', 'platform_id')
+
+    def get_social_platform(self, obj):
+        return obj.platform_name
 
 
 class ProfileRightSerializer(serializers.ModelSerializer):
@@ -71,6 +76,25 @@ class ContactViewSerializer(serializers.ModelSerializer):
         model = Contact
         exclude = ('user',)
         depth = 1
+
+    @staticmethod
+    def set_visibility(contacts, user_id):
+        i = 0
+        for contact in contacts:
+
+            if contact["is_on_contag"]:
+                j = 0
+                for visibility in contact["contact_contag_user"]["profile_rights"]:
+
+                    if not visibility['is_public']:
+                        if not visibility['visible_for'] or not user_id in [int(x) for x in visibility['visible_for'].split(",")]:
+                            if visibility['unit_type'] in contacts[i]['contact_contag_user']:
+                                contacts[i]['contact_contag_user'][visibility['unit_type']] = None
+                                del contacts[i]['contact_contag_user']['profile_rights'][j]
+                    j += 1
+            i += 1
+
+        return contacts
 
 
 class FeedSerializer(serializers.ModelSerializer):

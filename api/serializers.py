@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import User, Contact, Feed, SocialProfile, ProfileRight
+from api.models import User, Contact, Feed, SocialProfile, ProfileRight, Notification
 
 
 class ContactSyncSerializer(serializers.ModelSerializer):
@@ -107,14 +107,27 @@ class ProfileEditSerializer(serializers.ModelSerializer):
                         right.is_public = is_public
                         right.save()
 
-
-
         instance.save()
 
         return instance
 
 
+class BlockedMutedSerializer(serializers.ModelSerializer):
+    contact_name = serializers.SerializerMethodField(source='get_contact_name')
 
+    class Meta:
+        model = Contact
+        fields = ('contact_name', 'contact_number', 'contact_contag_user')
+
+
+    def get_contact_name(self, obj):
+        return obj.contact_contag_user.name
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Notification
 
 
 

@@ -63,6 +63,16 @@ class User(TimeStampedModel):
     avatar_url = models.CharField(max_length=500, null=True)
     blood_group = models.CharField(max_length=55, null=True)
 
+    def new_user(self):
+
+        in_contacts_for = Contact.objects.filter(contact_number=self.mobile_number)
+
+        if len(in_contacts_for):
+            in_contacts_for.update(is_on_contag=True, contact_contag_user=self)
+            # TODO create notification and create feed story
+        else:
+            return False
+
     def get_access_token(self, request_headers):
         (device_id, device_type, push_id, app_version_id) = request_headers["HTTP_X_DEVICE_ID"], \
                                                             request_headers["HTTP_X_DEVICE_TYPE"], \
@@ -72,6 +82,14 @@ class User(TimeStampedModel):
         token = AccessToken.objects.create(user=self, device_type=device_type, device_id=device_id, push_id=push_id,
                                            last_login=timezone.now(), app_version_id=app_version_id)
         return token
+
+    def logout(self, headers):
+        AccessToken.objects.filter(access_token=headers['HTTP_TOKEN']).update(is_active=False)
+
+        return True
+
+
+
 
 
 class AccessToken(TimeStampedModel):
@@ -158,11 +176,6 @@ class ProfileRight(models.Model):
     visible_for = models.CharField(max_length=1055, null=True)
 
 
-class BlockedList(TimeStampedModel):
-    through_user = models.ForeignKey(User, null=False)
-    blocked_user = models.ForeignKey(User, null=False, related_name="blocked_user")
-
-
 class ProfileRequest(TimeStampedModel):
     for_user = models.ForeignKey(User, null=False)
     from_user = models.ForeignKey(User, null=False, related_name="request_through")
@@ -179,11 +192,16 @@ class Feed(TimeStampedModel):
     story_type = models.CharField(max_length=55)
 
 
-class Notification(models.Model):
-    pass
+class Notification(TimeStampedModel):
 
+    user = models.ForeignKey(User)
+    notification_type = models.CharField(max_length=255)
+    text = models.CharField(max_length=1055)
+    object_id = models.IntegerField(default=0)
+    seen_at = models.DateTimeField(null=True)
+    pushed_at = models.DateTimeField(null=True)
+    device_id = models.CharField(max_length=45)
+    push_id = models.CharField(max_length=105)
 
-class PushNotification(models.Model):
-    pass
 
 

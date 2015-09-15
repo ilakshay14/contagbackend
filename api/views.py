@@ -4,12 +4,12 @@ import traceback
 from rest_framework.views import APIView
 from django.utils import timezone
 
-from models import OTPToken, Contact, Feed, User, ProfileRequest
+from models import OTPToken, Contact, Feed, User, ProfileRequest, Notification
 from contag.APIPermissions import AuthToken
 from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, \
     PROFILE_REQUEST_CREATED, SUCCESS_STATUS
 from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
-    ProfileViewSerializer, SocialProfileEditSerializer
+    ProfileViewSerializer, SocialProfileEditSerializer, BlockedMutedSerializer, NotificationSerializer
 
 
 class LoginView(APIView):
@@ -55,6 +55,19 @@ class OTPView(APIView):
         return JSONResponse(result, status=status)
 
 
+class LogoutView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def delete(self, request):
+
+        user = request.user
+
+        user.logout(headers=request.META)
+
+        return JSONResponse(SUCCESS_STATUS, status=200)
+
+
 class UserView(APIView):
 
     permission_classes = (AuthToken,)
@@ -89,6 +102,7 @@ class UserView(APIView):
         else:
             user = User(mobile_number=request.data['number'], contag=request.data['contag_id'])
             user.save()
+            user.new_user()
             token = user.get_access_token(request.META)
             return JSONResponse({"success": True, "auth_token": token.access_token}, status=200)
 
@@ -166,7 +180,7 @@ class ContactView(APIView):
 
     def get(self, request):
 
-        contacts = Contact.objects.filter(user=request.user)
+        contacts = Contact.objects.filter(user=request.user, is_blocked=False)
 
         response_data = ContactViewSerializer(instance=contacts, many=True).data
 
@@ -182,6 +196,52 @@ class FeedView(APIView):
         feeds = FeedSerializer(instance=stories, many=True).data
 
         return JSONResponse(feeds, status=200)
+
+
+class NotificationView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def get(self, request):
+
+        start_index = request.data["start_index"]
+        end_index = request.data["end_index"]
+
+        notifications = Notification.obejcts.filter(user=request.user)[start_index:end_index]
+
+        return JSONResponse(NotificationSerializer(instance=notifications, many=True).data, status=200)
+
+
+class BlockMuteView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def put(self, request):
+
+        try:
+            is_blocked = request.data["is_blocked"]
+            is_muted = request.data["is_muted"]
+            contact_id = request.data["contact_id"]
+
+            Contact.objects.filter(id=contact_id).update(is_blocked=is_blocked, is_muted=is_muted)
+            return JSONResponse(SUCCESS_STATUS, status=200)
+
+        except Exception as e:
+            return JSONResponse(OBJECT_DOES_NOT_EXIST, status=200)
+
+    def get(self, request):
+
+        blocked_muted_contacts = Contact.objects.filter(user=request.user, is_blocked=True, is_muted=True)
+
+        return JSONResponse(BlockedMutedSerializer(instance=blocked_muted_contacts, many=True).data, status=200)
+
+
+
+
+
+
+
+
 
 
 # Profile Right mess

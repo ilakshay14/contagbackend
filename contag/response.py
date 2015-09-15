@@ -17,14 +17,14 @@ class JSONResponse(HttpResponse):
         super(JSONResponse, self).__init__(content, **kwargs)
 
 
-VALIDATION_ERROR_MESSAGE = {"Message": "Validation error occurred!"}
+VALIDATION_ERROR_MESSAGE = {"message": "Validation error occurred!"}
 
-UNKOWN_ERROR_MESSAGE = {"Message": "Unknown error occured!"}
+UNKOWN_ERROR_MESSAGE = {"message": "Unknown error occured!"}
 
-OBJECT_DOES_NOT_EXIST = {"Message": "Object does not exist!"}
+OBJECT_DOES_NOT_EXIST = {"message": "Object does not exist!"}
 
-REQUEST_ALREADY_EXISTS  = {"Message": "Request already exists!"}
+REQUEST_ALREADY_EXISTS  = {"message": "Request already exists!"}
 
-PROFILE_REQUEST_CREATED = {"Message": "Profile request created!"}
+PROFILE_REQUEST_CREATED = {"message": "Profile request created!"}
 
-SUCCESS_STATUS = {"Result": True}
+SUCCESS_STATUS = {"result": True}

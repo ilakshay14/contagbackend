@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from django.db.models import Q
 from models import OTPToken, User, ProfileRequest, Contact, SocialPlatform, \
-    Interests, ShareContact, Feed, Notification, UserInterest
+    Interests, ShareContact, Feed, Notification, UserInterest, SocialProfile
 from contag.APIPermissions import AuthToken
 from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, \
     PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE, ERROR_MESSAGE
@@ -120,17 +120,19 @@ class SocialProfileView(APIView):
 
         return JSONResponse(platforms, status=200)
 
-    def put(self, request):
+    def post(self, request):
 
-        social_profile = SocialProfileEditSerializer(partial=True, data=request.data["social_profile"],
-                                                     context={'current_user': request.user})
+        user = request.user
+        social_profile = SocialProfile.objects.filter(user=user, social_platform_id=request.data["social_platform_id"])
 
-        if social_profile.is_valid():
-            #SocialProfile.objects.filter(social_platform=)
-            social_profile.save()
-            return JSONResponse(social_profile.data, status=200)
+        if len(social_profile):
+            profile = SocialProfileEditSerializer()
+            profile.update(instance=social_profile[0], validated_data=request.data)
         else:
-            return JSONResponse(social_profile.error_messages, status=200)
+            social_profile = SocialProfileEditSerializer(context={'current_user': request.user})
+            social_profile.create(validated_data=request.data)
+
+        return JSONResponse(SUCCESS_MESSAGE, status=200)
 
 
 class InterestView(APIView):

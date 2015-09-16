@@ -54,6 +54,28 @@ class SocialProfileEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialProfile
 
+    def create(self, validated_data):
+
+        user = self.context["current_user"]
+
+        profile = SocialProfile.objects.create(user=user, **validated_data)
+
+        return profile
+
+    def update(self, instance, validated_data):
+
+        instance.platform_id = validated_data.get("platform_id")
+        instance.platform_token = validated_data.get("platform_token", None)
+        instance.platform_secret = validated_data.get("platform_secret", None)
+        instance.platform_permissions = validated_data.get("platform_permissions", None)
+        instance.platform_email = validated_data.get("platform_email", None)
+
+        instance.save()
+
+        return instance
+
+
+
 
 class SocialProfileSerializer(serializers.ModelSerializer):
     social_platform = serializers.SerializerMethodField(source = 'get_social_platform')

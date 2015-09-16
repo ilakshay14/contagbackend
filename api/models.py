@@ -147,7 +147,7 @@ class SocialProfile(TimeStampedModel):
 
 
 class UserInterest(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, related_name='user_interests')
     interest = models.ForeignKey(Interests)
 
 

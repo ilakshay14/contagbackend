@@ -76,10 +76,20 @@ class ProfileRightSerializer(serializers.ModelSerializer):
 class ProfileViewSerializer(serializers.ModelSerializer):
     profile_rights = ProfileRightSerializer(many=True)
     social_profile = SocialProfileSerializer(many=True)
+    user_interests = serializers.SerializerMethodField(source='get_user_interests')
 
     class Meta:
         model = User
-        include = ('social_profile', 'profile_rights' )
+        include = ('social_profile', 'profile_rights', 'user_interests' )
+
+    def get_user_interests(self, obj):
+        user_interests = []
+        for row in obj.user_interests.all():
+            user_interests.append({
+                "interest_id": row.interest.id,
+                "interest_name": row.interest.interest
+            })
+        return user_interests
 
 
 class ContactViewSerializer(serializers.ModelSerializer):

@@ -29,4 +29,4 @@ PROFILE_REQUEST_CREATED = {"message": "Profile request created!"}
 
 SUCCESS_MESSAGE = {"result": True}
 
-ERROR_MESSAGE = {"result": True}
+ERROR_MESSAGE = {"result": False}

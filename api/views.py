@@ -4,7 +4,7 @@ import traceback
 from rest_framework.views import APIView
 from django.utils import timezone
 
-from rest_framework.decorators import permission_classes
+from django.db.models import Q
 from models import OTPToken, User, ProfileRequest, Contact, SocialPlatform, \
     Interests, ShareContact, Feed, Notification, UserInterest
 from contag.APIPermissions import AuthToken
@@ -126,6 +126,7 @@ class SocialProfileView(APIView):
                                                      context={'current_user': request.user})
 
         if social_profile.is_valid():
+            #SocialProfile.objects.filter(social_platform=)
             social_profile.save()
             return JSONResponse(social_profile.data, status=200)
         else:
@@ -134,29 +135,31 @@ class SocialProfileView(APIView):
 
 class InterestView(APIView):
 
+    permission_classes = (AuthToken, )
+
     def get(self, request):
 
         slug = request.query_params['slug']
 
-        interests = Interests.obejcts.filter(interest__icontains=slug)
+        interests = Interests.objects.filter(interest__icontains=slug)
 
         interests = InterestSerializer(instance=interests, many=True).data
 
         return JSONResponse(interests, status=200)
 
-    @permission_classes((AuthToken, ))
     def post(self, request):
 
         try:
             user = request.user
 
-            UserInterest.obejcts.filter(user=user).delete()
+            UserInterest.objects.filter(user=user).delete()
 
             for interest_id in request.data["interest_ids"].split(","):
-                UserInterest.create(user=user, interest_id=interest_id)
+                UserInterest.objects.create(user=user, interest_id=interest_id)
 
             return JSONResponse(SUCCESS_MESSAGE, status=200)
         except Exception as e:
+            print traceback.format_exc(e)
             return JSONResponse(ERROR_MESSAGE, status=200)
 
 
@@ -170,13 +173,13 @@ class ProfileRequestView(APIView):
         for_user = request.data["for_user"]
         request_type = request.data["request_type"]
 
-        profile_request = ProfileRequest.objects.filter(for_user=for_user, from_user=from_user,
+        profile_request = ProfileRequest.objects.filter(for_user_id=for_user, from_user=from_user,
                                                         request_type=request_type)
 
         if len(profile_request):
             return JSONResponse(REQUEST_ALREADY_EXISTS, status=200)
         else:
-            profile_request = ProfileRequest(for_user=for_user, from_user=from_user, request_type=request_type)
+            profile_request = ProfileRequest(for_user_id=for_user, from_user=from_user, request_type=request_type)
             profile_request.save()
             return JSONResponse(PROFILE_REQUEST_CREATED, status=200)
 
@@ -237,8 +240,8 @@ class InviteView(APIView):
 
         try:
             contact_id = request.data["contact_id"]
-
-            Contact.objects.filter(id=contact_id).update(is_invited=True, invited_on=datetime.now())
+            # TODO send the invite through sms/whatsapp?
+            Contact.objects.filter(id=contact_id).update(is_invited=True, invited_on=datetime.datetime.now())
 
             return JSONResponse(SUCCESS_MESSAGE, status=200)
         except Exception as e:
@@ -260,6 +263,7 @@ class ShareContactView(APIView):
             share.save()
             return JSONResponse(SUCCESS_MESSAGE, status=200)
         except Exception as e:
+            print traceback.format_exc(e)
             return JSONResponse(ERROR_MESSAGE, status=200)
 
 
@@ -282,15 +286,9 @@ class BlockMuteView(APIView):
 
     def get(self, request):
 
-        blocked_muted_contacts = Contact.objects.filter(user=request.user, is_blocked=True, is_muted=True)
+        blocked_muted_contacts = Contact.objects.filter(Q(user=request.user) & (Q(is_blocked=True) | Q(is_muted=True)))
 
         return JSONResponse(BlockedMutedSerializer(instance=blocked_muted_contacts, many=True).data, status=200)
-
-
-
-
-
-
 
 
 class FeedView(APIView):

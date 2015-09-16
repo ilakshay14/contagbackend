@@ -12,7 +12,7 @@ class SocialPlatformSerializer(serializers.ModelSerializer):
 class InterestSerializer(serializers.ModelSerializer):
 
     class Meta:
-        models = Interests
+        model = Interests
 
 
 class ContactSyncSerializer(serializers.ModelSerializer):
@@ -175,7 +175,7 @@ class BlockedMutedSerializer(serializers.ModelSerializer):
 
 
     def get_contact_name(self, obj):
-        return obj.contact_contag_user.name
+        return obj.contact_contag_user.name if obj.contact_contag_user else obj.contact_name
 
 
 class NotificationSerializer(serializers.ModelSerializer):

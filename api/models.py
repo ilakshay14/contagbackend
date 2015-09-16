@@ -37,7 +37,6 @@ class Interests(models.Model):
 class User(TimeStampedModel):
     name = models.CharField(null=False, max_length=255)
     mobile_number = models.CharField(max_length=100, null=False)
-    registered_with = models.CharField(max_length=255, null=False)
     is_mobile_verified = models.BooleanField(default=False)
 
     #Always public short profile

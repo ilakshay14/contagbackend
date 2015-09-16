@@ -212,6 +212,7 @@ class ContactView(APIView):
 
             response_data = ContactViewSerializer.set_visibility(response_data, user_id = request.user.id)
 
+            print(response_data)
             return JSONResponse(response_data, status=200)
         except Exception as e:
             print traceback.format_exc(e)

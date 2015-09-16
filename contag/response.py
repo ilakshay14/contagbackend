@@ -27,4 +27,6 @@ REQUEST_ALREADY_EXISTS  = {"message": "Request already exists!"}
 
 PROFILE_REQUEST_CREATED = {"message": "Profile request created!"}
 
-SUCCESS_STATUS = {"result": True}
+SUCCESS_MESSAGE = {"result": True}
+
+ERROR_MESSAGE = {"result": True}

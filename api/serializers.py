@@ -1,5 +1,18 @@
 from rest_framework import serializers
-from api.models import User, Contact, Feed, SocialProfile, ProfileRight, Notification
+from api.models import User, Contact, Feed, SocialProfile, ProfileRight, Notification,\
+    Interests, SocialPlatform
+
+
+class SocialPlatformSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SocialPlatform
+
+
+class InterestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        models = Interests
 
 
 class ContactSyncSerializer(serializers.ModelSerializer):

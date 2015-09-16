@@ -4,12 +4,15 @@ import traceback
 from rest_framework.views import APIView
 from django.utils import timezone
 
-from models import OTPToken, Contact, Feed, User, ProfileRequest, Notification
+from rest_framework.decorators import permission_classes
+from models import OTPToken, User, ProfileRequest, Contact, SocialPlatform, \
+    Interests, ShareContact, Feed, Notification, UserInterest
 from contag.APIPermissions import AuthToken
 from contag.response import JSONResponse, VALIDATION_ERROR_MESSAGE, OBJECT_DOES_NOT_EXIST, REQUEST_ALREADY_EXISTS, \
-    PROFILE_REQUEST_CREATED, SUCCESS_STATUS
-from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer, ProfileEditSerializer, \
-    ProfileViewSerializer, SocialProfileEditSerializer, BlockedMutedSerializer, NotificationSerializer
+    PROFILE_REQUEST_CREATED, SUCCESS_MESSAGE, ERROR_MESSAGE
+from serializers import ContactSyncSerializer, ContactViewSerializer, FeedSerializer,\
+    ProfileEditSerializer, ProfileViewSerializer, SocialProfileEditSerializer,\
+    BlockedMutedSerializer, NotificationSerializer, SocialPlatformSerializer, InterestSerializer
 
 
 class LoginView(APIView):
@@ -19,7 +22,7 @@ class LoginView(APIView):
         otp = OTPToken.create(number=number)
         otp.save()
         otp.send()
-        return JSONResponse(SUCCESS_STATUS, status=200)
+        return JSONResponse(SUCCESS_MESSAGE, status=200)
 
 
 class OTPView(APIView):
@@ -64,7 +67,7 @@ class LogoutView(APIView):
 
         user.logout(headers=request.META)
 
-        return JSONResponse(SUCCESS_STATUS, status=200)
+        return JSONResponse(SUCCESS_MESSAGE, status=200)
 
 
 class UserView(APIView):
@@ -110,6 +113,13 @@ class SocialProfileView(APIView):
 
     permission_classes = (AuthToken, )
 
+    def get(self, request):
+
+        platforms = SocialPlatform.objects.all()
+        platforms = SocialPlatformSerializer(instance=platforms, many=True).data
+
+        return JSONResponse(platforms, status=200)
+
     def put(self, request):
 
         social_profile = SocialProfileEditSerializer(partial=True, data=request.data["social_profile"],
@@ -120,6 +130,37 @@ class SocialProfileView(APIView):
             return JSONResponse(social_profile.data, status=200)
         else:
             return JSONResponse(social_profile.error_messages, status=200)
+
+
+class InterestView(APIView):
+
+    def get(self, request):
+
+        slug = request.query_params['slug']
+
+        interests = Interests.obejcts.filter(interest__icontains=slug)
+
+        interests = InterestSerializer(instance=interests, many=True).data
+
+        return JSONResponse(interests, status=200)
+
+    @permission_classes((AuthToken, ))
+    def post(self, request):
+
+        try:
+            user = request.user
+
+            UserInterest.obejcts.filter(user=user).delete()
+
+            for interest_id in request.data["interest_ids"].split(","):
+                UserInterest.create(user=user, interest_id=interest_id)
+
+            return JSONResponse(SUCCESS_MESSAGE, status=200)
+        except Exception as e:
+            return JSONResponse(ERROR_MESSAGE, status=200)
+
+
+
 
 
 class ProfileRequestView(APIView):
@@ -153,7 +194,7 @@ class ProfileRequestView(APIView):
 
         profile_request.save()
 
-        return JSONResponse(SUCCESS_STATUS, status=200)
+        return JSONResponse(SUCCESS_MESSAGE, status=200)
 
 
 class ContactView(APIView):
@@ -190,6 +231,68 @@ class ContactView(APIView):
         return JSONResponse(response_data, status=200)
 
 
+class InviteView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def put(self, request):
+
+        try:
+            contact_id = request.data["contact_id"]
+
+            Contact.objects.filter(id=contact_id).update(is_invited=True, invited_on=datetime.now())
+
+            return JSONResponse(SUCCESS_MESSAGE, status=200)
+        except Exception as e:
+            return JSONResponse(OBJECT_DOES_NOT_EXIST, status=200)
+
+
+class ShareContactView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def post(self, request):
+
+        try:
+            contact_id = request.data["contact_id"]
+            message = request.data["message"]
+            share = ShareContact(from_user= request.user, contact_id=contact_id, message=message)
+            share.save()
+            return JSONResponse(SUCCESS_MESSAGE, status=200)
+        except Exception as e:
+            return JSONResponse(ERROR_MESSAGE, status=200)
+
+
+class BlockMuteView(APIView):
+
+    permission_classes = (AuthToken, )
+
+    def put(self, request):
+
+        try:
+            is_blocked = request.data["is_blocked"]
+            is_muted = request.data["is_muted"]
+            contact_id = request.data["contact_id"]
+
+            Contact.objects.filter(id=contact_id).update(is_blocked=is_blocked, is_muted=is_muted)
+            return JSONResponse(SUCCESS_MESSAGE, status=200)
+
+        except Exception as e:
+            return JSONResponse(OBJECT_DOES_NOT_EXIST, status=200)
+
+    def get(self, request):
+
+        blocked_muted_contacts = Contact.objects.filter(user=request.user, is_blocked=True, is_muted=True)
+
+        return JSONResponse(BlockedMutedSerializer(instance=blocked_muted_contacts, many=True).data, status=200)
+
+
+
+
+
+
+
+
 class FeedView(APIView):
     permission_classes = (AuthToken,)
 
@@ -215,28 +318,6 @@ class NotificationView(APIView):
         return JSONResponse(NotificationSerializer(instance=notifications, many=True).data, status=200)
 
 
-class BlockMuteView(APIView):
-
-    permission_classes = (AuthToken, )
-
-    def put(self, request):
-
-        try:
-            is_blocked = request.data["is_blocked"]
-            is_muted = request.data["is_muted"]
-            contact_id = request.data["contact_id"]
-
-            Contact.objects.filter(id=contact_id).update(is_blocked=is_blocked, is_muted=is_muted)
-            return JSONResponse(SUCCESS_STATUS, status=200)
-
-        except Exception as e:
-            return JSONResponse(OBJECT_DOES_NOT_EXIST, status=200)
-
-    def get(self, request):
-
-        blocked_muted_contacts = Contact.objects.filter(user=request.user, is_blocked=True, is_muted=True)
-
-        return JSONResponse(BlockedMutedSerializer(instance=blocked_muted_contacts, many=True).data, status=200)
 
 
 

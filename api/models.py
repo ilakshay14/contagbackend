@@ -30,6 +30,10 @@ class SocialPlatform(models.Model):
     is_binary = models.BooleanField(null=False, default=True)
 
 
+class Interests(models.Model):
+    interest = models.CharField(max_length=1055)
+
+
 class User(TimeStampedModel):
     name = models.CharField(null=False, max_length=255)
     mobile_number = models.CharField(max_length=100, null=False)
@@ -39,7 +43,7 @@ class User(TimeStampedModel):
     #Always public short profile
     contag = models.CharField(null=False, max_length=8, unique=True)
     gender = models.CharField(max_length=1, default='f')
-    interests = models.CharField(max_length=1055, null=True)
+    status_update = models.CharField(max_length=255, null=True)
 
     # Personal profile
     landline_number = models.CharField(max_length=100, null=True)
@@ -89,9 +93,6 @@ class User(TimeStampedModel):
         return True
 
 
-
-
-
 class AccessToken(TimeStampedModel):
     access_token = models.CharField(max_length=100, null=False)
     device_id = models.CharField(max_length=50, null=False)
@@ -135,6 +136,38 @@ class OTPToken(TimeStampedModel):
         sms.send(9971528807, otp_message)
 
 
+class SocialProfile(TimeStampedModel):
+    social_platform = models.ForeignKey(SocialPlatform)
+    user = models.ForeignKey(User, related_name='social_profile')
+    platform_id = models.CharField(null=False, max_length=1055)
+    platform_token = models.CharField(max_length=200, null=True)
+    platform_secret = models.CharField(max_length=200, null=True)
+    platform_permissions = models.CharField(max_length=255, null=True)
+    platform_email = models.CharField(max_length=255, null=True)
+
+
+class UserInterest(models.Model):
+    user = models.ForeignKey(User)
+    interest = models.ForeignKey(Interests)
+
+
+class ProfileRight(models.Model):
+
+    from_user = models.ForeignKey(User, related_name='profile_rights')
+    unit_type = models.CharField(max_length=255)
+    unit_id = models.IntegerField(default=0)
+    is_public = models.BooleanField(default=False)
+    visible_for = models.CharField(max_length=1055, null=True)
+
+
+class ProfileRequest(TimeStampedModel):
+    for_user = models.ForeignKey(User, null=False)
+    from_user = models.ForeignKey(User, null=False, related_name="request_through")
+    request_type = models.CharField(null=False, max_length=255)
+    is_fulfilled = models.BooleanField(default=False)
+    is_denied = models.BooleanField(default=False)
+
+
 class Contact(TimeStampedModel):
     user = models.ForeignKey(User)
     contact_name = models.CharField(null=False, max_length=255)
@@ -158,31 +191,11 @@ class Contact(TimeStampedModel):
                 self.contact_contag_user = contag_user[0]
 
 
-class SocialProfile(TimeStampedModel):
-    social_platform = models.ForeignKey(SocialPlatform)
-    user = models.ForeignKey(User, related_name='social_profile')
-    platform_id = models.IntegerField(null=False)
-    platform_token = models.CharField(max_length=200, null=True)
-    platform_secret = models.CharField(max_length=200, null=True)
-    platform_permissions = models.CharField(max_length=255, null=True)
-    platform_email = models.CharField(max_length=255, null=True)
+class ShareContact(TimeStampedModel):
 
-
-class ProfileRight(models.Model):
-
-    from_user = models.ForeignKey(User, related_name='profile_rights')
-    unit_type = models.CharField(max_length=255)
-    unit_id = models.IntegerField(default=0)
-    is_public = models.BooleanField(default=False)
-    visible_for = models.CharField(max_length=1055, null=True)
-
-
-class ProfileRequest(TimeStampedModel):
-    for_user = models.ForeignKey(User, null=False)
-    from_user = models.ForeignKey(User, null=False, related_name="request_through")
-    request_type = models.CharField(null=False, max_length=255)
-    is_fulfilled = models.BooleanField(default=False)
-    is_denied = models.BooleanField(default=False)
+    from_user = models.ForeignKey(User)
+    contact = models.ForeignKey(Contact)
+    message = models.CharField(max_length=255)
 
 
 class Feed(TimeStampedModel):

@@ -3,3 +3,4 @@
 test/
 .ipynb_checkpoints/
 Untitled.ipynb
+contag/settings/local.py

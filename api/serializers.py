@@ -50,7 +50,7 @@ class SocialProfileSerializer(serializers.ModelSerializer):
         fields = ('social_platform', 'platform_id')
 
     def get_social_platform(self, obj):
-        return obj.platform_name
+        return obj.social_platform.platform_name
 
 
 class ProfileRightSerializer(serializers.ModelSerializer):
@@ -80,6 +80,7 @@ class ContactViewSerializer(serializers.ModelSerializer):
     @staticmethod
     def set_visibility(contacts, user_id):
         i = 0
+
         for contact in contacts:
 
             if contact["is_on_contag"]:
@@ -90,7 +91,12 @@ class ContactViewSerializer(serializers.ModelSerializer):
                         if not visibility['visible_for'] or not user_id in [int(x) for x in visibility['visible_for'].split(",")]:
                             if visibility['unit_type'] in contacts[i]['contact_contag_user']:
                                 contacts[i]['contact_contag_user'][visibility['unit_type']] = None
+                            else:
+                                social_index = next(index for (index, d) in enumerate(contacts[i]['contact_contag_user']['social_profile']) if d["social_platform"] == visibility['unit_type'])
+                                if social_index > -1:
+                                    del contacts[i]['contact_contag_user']['social_profile'][social_index]
                     j += 1
+
 
                 contacts[i]['contact_contag_user'].pop("profile_rights", None)
             i += 1

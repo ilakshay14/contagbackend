@@ -194,6 +194,7 @@ class Contact(TimeStampedModel):
 class ShareContact(TimeStampedModel):
 
     from_user = models.ForeignKey(User)
+    shared_with = models.ForeignKey(User, related_name='shareD_with')
     contact = models.ForeignKey(Contact)
     message = models.CharField(max_length=255)
 

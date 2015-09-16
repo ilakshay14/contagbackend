@@ -160,9 +160,6 @@ class InterestView(APIView):
             return JSONResponse(ERROR_MESSAGE, status=200)
 
 
-
-
-
 class ProfileRequestView(APIView):
 
     permission_classes = (AuthToken, )
@@ -256,7 +253,9 @@ class ShareContactView(APIView):
         try:
             contact_id = request.data["contact_id"]
             message = request.data["message"]
-            share = ShareContact(from_user= request.user, contact_id=contact_id, message=message)
+            shared_with = request.data["shared_with"]
+            share = ShareContact(from_user= request.user, shared_with_id = shared_with,
+                                 contact_id=contact_id, message=message)
             share.save()
             return JSONResponse(SUCCESS_MESSAGE, status=200)
         except Exception as e:

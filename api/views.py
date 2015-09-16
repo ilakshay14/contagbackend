@@ -83,10 +83,7 @@ class UserView(APIView):
 
         return JSONResponse(profile.data, status=200)
 
-        #return JSONResponse(profile.errors, status=403)
-
     def get(self, request):
-
         try:
             user = User.objects.get(pk=request.query_params["user_id"]) if "user_id" in request.query_params else request.user
             profile = ProfileViewSerializer(instance=user)

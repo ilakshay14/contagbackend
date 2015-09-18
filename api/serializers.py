@@ -57,17 +57,20 @@ class SocialProfileEditSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         user = self.context["current_user"]
+        visibility = validated_data.pop("visibility", -1)
 
         profile = SocialProfile.objects.create(user=user, **validated_data)
 
-        visibility = validated_data.get("visibility", -1)
+
         social_platform_id = validated_data.get("social_platform_id")
-        platform_name = SocialPlatform.objects.get(pk=social_platform_id)
+        platform_name = SocialPlatform.objects.get(pk=social_platform_id).platform_name
+
+        if isinstance(visibility, int):
+                is_public = True if visibility else False
 
         ProfileRight.objects.create(from_user=user, unit_type=platform_name,
-                                         unit_id=social_platform_id, is_public= visibility)
-
-
+                                         unit_id=social_platform_id, is_public= is_public,
+                                    visible_for=visibility)
 
         return profile
 
@@ -81,9 +84,13 @@ class SocialProfileEditSerializer(serializers.ModelSerializer):
 
         instance.save()
 
-
-        right = ProfileRight.objects.filter(from_user=instance.user, unit_type=instance.social_platform.name)
-        right.visible_for = validated_data.get("visibility", -1)
+        right = ProfileRight.objects.filter(from_user=instance.user, unit_type=instance.social_platform.platform_name)[0]
+        visibility = validated_data.get("visibility", -1)
+        is_public = False
+        if isinstance(visibility, int):
+                is_public = True if visibility else False
+        right.is_public = is_public
+        right.visible_for = visibility
         right.save()
 
         return instance

@@ -88,7 +88,7 @@ class UserView(APIView):
             user = User.objects.get(pk=request.query_params["user_id"]) if "user_id" in request.query_params else request.user
 
             if "user_id" in request.query_params:
-                user.set_visibility(current_user_id=request.user)
+                user.set_visibility(current_user_id=request.user.id)
 
             profile = ProfileViewSerializer(instance=user)
             return JSONResponse(profile.data, status=200)

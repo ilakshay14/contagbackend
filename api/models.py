@@ -77,11 +77,14 @@ class User(TimeStampedModel):
             return False
 
     def set_visibility(self, current_user_id):
-        rights = ProfileRight.obhects.filter(from_user=self)
+        print current_user_id
+        rights = ProfileRight.objects.filter(from_user=self)
 
         for right in rights:
             if not right.is_public:
-                if not current_user_id in right.visible_for.split(","):
+                print right.visible_for
+                print right.visible_for.split(",")
+                if not current_user_id in [int(x) for x in right.visible_for.split(",")]:
                     setattr(self, right.unit_type, None)
 
 

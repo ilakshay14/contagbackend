@@ -12,7 +12,7 @@ class AuthToken(BasePermission):
         from api.models import User
 
         request.user = User.objects.get(pk=1)
-        print request.user
+
         return request.user
         # if 'HTTP_TOKEN' in request.META:
         #     print('Hi')

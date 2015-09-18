@@ -107,6 +107,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = '/home/ubuntu/contagbackend/'
+
 try:
     from contag.settings.local import *
 except ImportError as e:

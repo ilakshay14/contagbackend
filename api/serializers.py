@@ -60,6 +60,15 @@ class SocialProfileEditSerializer(serializers.ModelSerializer):
 
         profile = SocialProfile.objects.create(user=user, **validated_data)
 
+        visibility = validated_data.get("visibility", -1)
+        social_platform_id = validated_data.get("social_platform_id")
+        platform_name = SocialPlatform.objects.get(pk=social_platform_id)
+
+        ProfileRight.objects.create(from_user=user, unit_type=platform_name,
+                                         unit_id=social_platform_id, is_public= visibility)
+
+
+
         return profile
 
     def update(self, instance, validated_data):
@@ -71,6 +80,11 @@ class SocialProfileEditSerializer(serializers.ModelSerializer):
         instance.platform_email = validated_data.get("platform_email", None)
 
         instance.save()
+
+
+        right = ProfileRight.objects.filter(from_user=instance.user, unit_type=instance.social_platform.name)
+        right.visible_for = validated_data.get("visibility", -1)
+        right.save()
 
         return instance
 
@@ -167,21 +181,26 @@ class ProfileEditSerializer(serializers.ModelSerializer):
 
         for field in validated_data:
 
-            for key, value in field.iteritems():
-                if not key == 'visibility':
-                    setattr(instance, key, value)
-                    column_name = key
-                else:
-                    right = ProfileRight.objects.filter(from_user=instance, unit_type=column_name)
-                    is_public = True if value == 0 else False
+            visibility = field.pop("visibility",-1)
+            column_name = field.keys()[0]
+            column_value = field[column_name]
+            setattr(instance, column_name, column_value)
 
-                    if not len(right):
-                        ProfileRight.objects.create(from_user=instance, unit_type=column_name,
-                                         unit_id=instance.id, is_public= is_public)
-                    else:
-                        right = right[0]
-                        right.is_public = is_public
-                        right.save()
+            is_public = False
+            if isinstance(visibility, int):
+                is_public = True if visibility else False
+
+            right = ProfileRight.objects.filter(from_user=instance, unit_type=column_name)
+
+            if not len(right):
+                ProfileRight.objects.create(from_user=instance, unit_type=column_name,
+                                 unit_id=instance.id, is_public= is_public,
+                                visible_for=visibility)
+            else:
+                right = right[0]
+                right.is_public = is_public
+                right.visible_for = visibility
+                right.save()
 
         instance.save()
 

@@ -78,14 +78,18 @@ class UserView(APIView):
 
         profile = ProfileEditSerializer()
         profile = profile.update(instance=request.user, validated_data=request.data)
-
         profile = ProfileViewSerializer(instance=profile)
 
         return JSONResponse(profile.data, status=200)
 
     def get(self, request):
+
         try:
             user = User.objects.get(pk=request.query_params["user_id"]) if "user_id" in request.query_params else request.user
+
+            if "user_id" in request.query_params:
+                user.set_visibility(current_user_id=request.user)
+
             profile = ProfileViewSerializer(instance=user)
             return JSONResponse(profile.data, status=200)
         except Exception as e:
@@ -313,18 +317,3 @@ class NotificationView(APIView):
         notifications = Notification.obejcts.filter(user=request.user)[start_index:end_index]
 
         return JSONResponse(NotificationSerializer(instance=notifications, many=True).data, status=200)
-
-
-
-
-
-
-
-
-
-
-
-
-# Profile Right mess
-# Feed/notification generation and contact update
-# End points: Block/Mute, Feed, Notification, logout, Change contact number

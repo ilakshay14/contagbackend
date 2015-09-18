@@ -76,6 +76,15 @@ class User(TimeStampedModel):
         else:
             return False
 
+    def set_visibility(self, current_user_id):
+        rights = ProfileRight.obhects.filter(from_user=self)
+
+        for right in rights:
+            if not right.is_public:
+                if not current_user_id in right.visible_for.split(","):
+                    setattr(self, right.unit_type, None)
+
+
     def get_access_token(self, request_headers):
         (device_id, device_type, push_id, app_version_id) = request_headers["HTTP_X_DEVICE_ID"], \
                                                             request_headers["HTTP_X_DEVICE_TYPE"], \
